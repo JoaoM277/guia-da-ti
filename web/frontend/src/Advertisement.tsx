@@ -6,7 +6,7 @@ import { LoadingImage } from './LoadingImage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type Creative = { id: string; company: string; title: string; description: string; imageUrl: string | null; clickUrl: string; ticket: string };
-export function Advertisement({ placement = 'forum-feed', preview = false, listItem = false }: { placement?: 'forum-feed' | 'forum-topic' | 'study-topic'; preview?: boolean; listItem?: boolean }) {
+export function Advertisement({ placement = 'forum-feed', preview = false, listItem = false }: { placement?: 'site-top-banner' | 'forum-feed' | 'forum-topic' | 'study-topic'; preview?: boolean; listItem?: boolean }) {
   const [hiddenUntil, setHiddenUntil] = useState(0);
   const [ad, setAd] = useState<Creative | null>(null);
   const [enabled, setEnabled] = useState(true);
@@ -28,10 +28,10 @@ export function Advertisement({ placement = 'forum-feed', preview = false, listI
     return () => window.clearTimeout(timer);
   }, [hiddenUntil]);
   useEffect(() => {
-    if (preview || hiddenUntil || (enabled && !root.current)) return;
+    if (preview || hiddenUntil || (enabled && !root.current && placement !== 'site-top-banner')) return;
     const controller = new AbortController();
     let timer: number | undefined;
-    let visible = false;
+    let visible = placement === 'site-top-banner';
     let busy = false;
     let previous: string | undefined;
     let interval = 45;
@@ -52,7 +52,8 @@ export function Advertisement({ placement = 'forum-feed', preview = false, listI
       visible = entries[0].isIntersecting;
       if (visible) { window.clearTimeout(timer); void load(); }
     });
-    if (root.current) observer.observe(root.current);
+    if (root.current && placement !== 'site-top-banner') observer.observe(root.current);
+    if (placement === 'site-top-banner') void load();
     if (!enabled) timer = window.setTimeout(() => { void load(); }, interval * 1000);
     function focused() { if (!document.hidden && (visible || !enabled)) { window.clearTimeout(timer); void load(); } }
     document.addEventListener('visibilitychange', focused);
@@ -78,9 +79,20 @@ export function Advertisement({ placement = 'forum-feed', preview = false, listI
   if ((hiddenUntil || !enabled) && !preview) return null;
   const imageOnly = ad?.imageUrl && !ad.title.trim() && !ad.description.trim();
   const menu = <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs" className={ad ? 'absolute right-2 top-2 z-10 bg-background/90 hover:bg-background' : 'ml-auto'} aria-label="Opções da publicidade"><MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
-    <DropdownMenuItem asChild><a href="/empresas"><Info />Sobre este espaço</a></DropdownMenuItem>
+    <DropdownMenuItem asChild><a href="/divulgue"><Info />Sobre este espaço</a></DropdownMenuItem>
     {!preview && <DropdownMenuItem onSelect={() => { setAd(null); setHiddenUntil(hideAdsTemporarily()); }}><EyeOff />Ocultar anúncios por 4 horas</DropdownMenuItem>}
   </DropdownMenuContent></DropdownMenu>;
+  if (placement === 'site-top-banner') {
+    if (!ad && !preview) return null;
+    const banner = <aside ref={root} data-motion aria-label="Publicidade no topo do site" className="relative w-full overflow-hidden border-b bg-muted/20">
+      {!ad ? <div className="mx-auto flex min-h-9 max-w-7xl items-center gap-2 px-4 text-xs text-muted-foreground"><Megaphone className="size-3.5" aria-hidden="true" /><span className="font-medium">Publicidade</span><span aria-hidden="true">·</span><span>Espaço reservado</span>{menu}</div> : imageOnly ? <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="block w-full"><LoadingImage src={ad.imageUrl!} alt={ad.company} referrerPolicy="no-referrer" className="mx-auto min-h-9 w-full max-w-7xl" imageClassName="h-auto max-h-14 w-full object-contain" fallback={<span className="flex min-h-9 items-center justify-center text-sm font-medium">{ad.company}</span>} /></a> : <div key={ad.id} className="mx-auto flex min-h-12 max-w-7xl items-center gap-3 px-4 py-1 pr-12">
+      {ad.imageUrl && <a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="hidden shrink-0 sm:block"><LoadingImage src={ad.imageUrl} alt={ad.company} referrerPolicy="no-referrer" className="h-9 w-24" imageClassName="object-contain" /></a>}
+      <span className="shrink-0 text-[10px] text-muted-foreground">Publicidade</span><div className="min-w-0 flex-1 truncate text-xs"><strong className="font-semibold">{ad.title}</strong><span className="ml-2 text-muted-foreground">{ad.description}</span></div><a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-primary">Saiba mais</a>
+    </div>}
+      {ad && menu}
+    </aside>;
+    return listItem ? <li>{banner}</li> : banner;
+  }
   const content = <aside ref={root} data-motion aria-label="Publicidade" className={`relative my-2 overflow-hidden rounded-lg bg-muted/30 ${imageOnly ? '' : 'min-h-28 space-y-3 px-4 py-3'}`}>
     {!ad && <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <span className="flex size-7 items-center justify-center rounded-full bg-muted"><Megaphone className="size-3.5" aria-hidden="true" /></span>

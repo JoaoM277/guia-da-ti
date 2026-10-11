@@ -45,7 +45,7 @@ export function CommunityMetricsProvider({ children }: { children: ReactNode }) 
 
 export function ActiveUsers() {
   const active = useContext(ActivityContext);
-  return <span className="inline-flex items-center gap-2 text-xs" title="Visitantes com a página visível nos últimos 5 minutos, mesmo sem login. Cada navegador conta uma vez.">
+  return <span className="inline-flex items-center gap-2 text-xs" title="Visitantes que deixaram a página aberta nos últimos 5 minutos. Cada navegador conta uma vez, mesmo sem login.">
     <span aria-hidden="true" className={`size-1.5 rounded-full ${active === null ? 'bg-muted-foreground' : 'bg-primary'}`} />
     {active === null ? 'Atividade indisponível' : `${format(active)} ${active === 1 ? 'usuário ativo' : 'usuários ativos'}`}
     <span className="sr-only"> nos últimos 5 minutos, incluindo visitantes sem login</span>
@@ -55,10 +55,10 @@ export function ActiveUsers() {
 export function CommunityMetrics() {
   const registered = useContext(RegisteredContext);
   const metrics = [
-    { value: registered === null ? '—' : format(registered.registeredUsers), label: 'Contas que já entraram', detail: registered ? `Únicas no GitHub · desde ${new Date(registered.trackingSince).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}` : 'Contas únicas com login pelo GitHub' },
-    { value: format(resources.filter(resource => !resource.demo).length), label: 'Recursos no guia', detail: 'Indicações reais no catálogo' },
-    { value: format(categories.length), label: 'Categorias', detail: 'Para explorar tecnologia' },
-    { value: format(community.supporters.length), label: 'Empresas apoiadoras', detail: 'Apoiam a construção do Guia' },
+    { value: registered === null ? '—' : format(registered.registeredUsers), label: 'Contas que entraram', detail: registered ? `Pelo GitHub desde ${new Date(registered.trackingSince).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}` : 'Acessaram o Guia pelo GitHub' },
+    { value: format(resources.filter(resource => !resource.demo).length), label: 'Recursos no catálogo', detail: 'Indicações organizadas por categoria' },
+    { value: format(categories.length), label: 'Categorias', detail: 'Temas para explorar' },
+    { value: format(community.supporters.length), label: 'Apoiadores', detail: 'Apoiam a continuidade do Guia' },
   ];
   return <section aria-label="O Guia em números" className="space-y-4 border-y py-7 sm:py-10">
     <h2 className="sr-only">O Guia em números</h2>
@@ -69,6 +69,6 @@ export function CommunityMetrics() {
         <dd className="order-3 text-xs leading-relaxed text-muted-foreground">{metric.detail}</dd>
       </div>)}
     </dl>
-    {registered === null && <p className="text-xs text-muted-foreground">O total de contas que já entraram está indisponível no momento.</p>}
+    {registered === null && <p className="text-xs text-muted-foreground">Não foi possível carregar o total de contas agora.</p>}
   </section>;
 }

@@ -99,13 +99,13 @@ sealed class FakeGitHub : HttpMessageHandler
         LastVariables = payload.RootElement.GetProperty("variables").Clone();
         var category = new { id = "category-1", name = "Dúvidas" };
         var pageInfo = new { hasNextPage = true, endCursor = "cursor-2" };
-        var comment = new { id = "c1", bodyText = "Resposta", createdAt = "2026-10-05T12:00:00Z", isAnswer = true, isMinimized = false, author = new { login = "member" } };
+        var comment = new { id = "c1", bodyText = "Resposta", createdAt = "2026-10-05T12:00:00Z", isAnswer = true, isMinimized = false, deletedAt = (string?)null, author = new { login = "member", avatarUrl = (string?)null } };
         var comments = new
         {
             totalCount = 2, pageInfo,
             nodes = new[] {
-                new { id = "c1", bodyText = "Resposta", createdAt = "2026-10-05T12:00:00Z", isAnswer = true, isMinimized = false, author = new { login = "member" }, replies = new { totalCount = 6, nodes = new[] { comment } } },
-                new { id = "c2", bodyText = "CONTEUDO MODERADO", createdAt = "2026-10-05T12:00:00Z", isAnswer = false, isMinimized = true, author = new { login = "member" }, replies = new { totalCount = 1, nodes = new[] { comment } } }
+                new { id = "c1", bodyText = "Resposta", createdAt = "2026-10-05T12:00:00Z", isAnswer = true, isMinimized = false, deletedAt = (string?)null, author = new { login = "member", avatarUrl = (string?)null }, replies = new { totalCount = 6, nodes = new[] { comment } } },
+                new { id = "c2", bodyText = "CONTEUDO MODERADO", createdAt = "2026-10-05T12:00:00Z", isAnswer = false, isMinimized = true, deletedAt = (string?)null, author = new { login = "member", avatarUrl = (string?)null }, replies = new { totalCount = 1, nodes = new[] { comment } } }
             }
         };
         var discussion = new { number = 7, title = "Como começar?", bodyText = "Texto do tópico", author = (object?)null, category, comments, updatedAt = "2026-10-05T12:00:00Z", isAnswered = Mode == "announcement" ? (bool?)null : true, locked = false,

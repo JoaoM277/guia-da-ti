@@ -34,7 +34,7 @@ export function ContributionWizard({ children, category, rules, onSubmit, footer
     const panel = form.current?.querySelector(`[data-contribution-step="${index}"]`);
     const title = stepTitle(steps[index]);
     const invalid = [...(panel?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input,select,textarea') || [])].find(input => !input.checkValidity());
-    if (invalid) { setError('Confira este campo para continuar.'); if (index === step) { if (invalid.getClientRects().length) invalid.focus(); else panel?.querySelector<HTMLButtonElement>('[role="combobox"]')?.focus(); } return false; }
+    if (invalid) { setError('Confira os campos desta etapa.'); if (index === step) { if (invalid.getClientRects().length) invalid.focus(); else panel?.querySelector<HTMLButtonElement>('[role="combobox"]')?.focus(); } return false; }
     if (rules[title] === false) { setError('Preencha as informações desta etapa para continuar.'); return false; }
     setError('');
     return true;

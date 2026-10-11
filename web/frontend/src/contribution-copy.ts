@@ -20,11 +20,11 @@ export function contributionCopy(type: string) {
     description: `Detalhes ${subject}`,
     urlHelp: profile ? 'Cole o endereço do perfil que você quer indicar.' : type === 'communities'
       ? 'Informe o site da comunidade ou seu principal link de entrada. Os links das outras plataformas ficam na etapa Plataformas da comunidade.'
-      : 'Cole a página oficial onde a pessoa pode conhecer o que você está indicando.',
+      : 'Cole o link oficial para a pessoa acessar essa indicação.',
     summaryHelp: type === 'communities' ? 'Em uma frase, conte para quem é a comunidade e o que as pessoas encontram nela.'
-      : profile ? 'Em uma frase, conte quais assuntos esse perfil aborda.' : 'Em uma frase, explique o que a pessoa encontra ao acessar esse site.',
+      : profile ? 'Em uma frase, conte sobre o conteúdo desse perfil.' : 'Em uma frase, diga o que a pessoa encontra nesse site.',
     descriptionHelp: type === 'communities' ? 'Conte o que a comunidade faz e como participar.'
-      : profile ? 'Conte sobre o conteúdo do perfil e para quem você o recomenda.'
-      : 'Explique para quem você recomenda essa indicação. Informe as condições de acesso, como custo ou inscrição.',
+      : profile ? 'Conte que tipo de conteúdo o perfil publica e para quem ele pode ser útil.'
+      : 'Diga para quem essa indicação pode ser útil e informe se há custo ou inscrição.',
   };
 }

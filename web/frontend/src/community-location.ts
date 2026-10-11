@@ -31,7 +31,7 @@ export function matchesCommunityFilters(resource: {communityLocation?:CommunityL
     && (filters.platform==='all'||!!resource.communityPlatforms?.some(id=>filters.platform==='other'?!primaryCommunityPlatforms.includes(id):id===filters.platform));
 }
 export function compareCommunities(a:{slug:string;name:string},b:{slug:string;name:string}) {
-  return Number(b.slug==='fulldev')-Number(a.slug==='fulldev') || a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'});
+  return a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'});
 }
 export function toggleStates(selection: LocationSelection, states: string[]): LocationSelection {
   const selected = selection.scope === 'regional' ? selection.states : [];

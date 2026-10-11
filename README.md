@@ -26,6 +26,8 @@ dotnet run --project web/backend/GuiaDaTi.Api --no-build
 
 Para desenvolver a interface após gerar o catálogo: `npm --prefix web/frontend run dev`.
 
+Para executar o backend e o frontend ao mesmo tempo, use `./scripts/dev.ps1`. Abra `http://localhost:5173`. Pressione Ctrl+C para encerrar os dois servidores.
+
 O servidor aceita conexões da rede na porta 5080. Em outro dispositivo conectado à mesma rede, abra `http://IP-DA-MAQUINA:5080`. Consulte o IPv4 da conexão Ethernet ou Wi-Fi com `ipconfig`. Na própria máquina, você também pode usar `http://localhost:5080`.
 
 A conta administradora gerencia campanhas em `/admin/anuncios`. Consulte os espaços, limites e instruções de armazenamento em [Administração de anúncios](docs/publicidade.md).

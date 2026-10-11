@@ -33,7 +33,7 @@ const details: Record<string, { icon: LucideIcon; description: string }> = {
   mentoring: { icon: Users, description: 'Encontre programas de mentoria.' },
   volunteering: { icon: HeartHandshake, description: 'Encontre programas e plataformas de voluntariado.' },
   about: { icon: Info, description: 'Conheça o Guia e seus mantenedores.' },
-  supporters: { icon: HeartHandshake, description: 'Empresas que apoiam a comunidade.' },
+  supporters: { icon: HeartHandshake, description: 'Quem apoia o Guia.' },
 };
 
 export function NavigationCard({ id, name }: { id: string; name: string }) {

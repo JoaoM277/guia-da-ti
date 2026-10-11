@@ -19,7 +19,7 @@ export function ComboboxField({ label, name, value, onChange, options, disabled 
         {options.find(option => option.id === value)?.name || 'Escolha uma categoria'}<ChevronsUpDown className="size-4 opacity-50" />
       </Button></PopoverTrigger>
       <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
-        <Command><CommandInput aria-label="Pesquisar categoria da comunidade" placeholder="Pesquisar categoria…" />
+        <Command><CommandInput aria-label="Pesquisar categoria da comunidade" placeholder="Pesquisar categoria" />
           <CommandList><CommandEmpty>Nenhuma categoria encontrada</CommandEmpty><CommandGroup>
             {options.map(option => <CommandItem key={option.id} value={option.name} keywords={[option.id]} onSelect={() => { onChange(option.id); setOpen(false); }}>
               <Check className={`size-4 ${value === option.id ? 'opacity-100' : 'opacity-0'}`} />{option.name}

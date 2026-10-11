@@ -120,11 +120,20 @@ public sealed class DiscussionsClient(IHttpClientFactory clients, IConfiguration
     private static DiscussionComment Comment(JsonElement item)
     {
         var hidden = item.GetProperty("isMinimized").GetBoolean();
+        var deleted = item.GetProperty("deletedAt").ValueKind != JsonValueKind.Null;
         var hasReplies = item.TryGetProperty("replies", out var replies);
-        return new(Text(item, "id"), Author(item), hidden ? "Comentário ocultado pela moderação." : Text(item, "bodyText"),
-            Text(item, "createdAt"), item.GetProperty("isAnswer").GetBoolean(),
+        return new(Text(item, "id"), Author(item), AvatarUrl(item), hidden ? "Comentário ocultado pela moderação." : Text(item, "bodyText"),
+            Text(item, "createdAt"), item.GetProperty("isAnswer").GetBoolean(), deleted,
             hasReplies && !hidden ? replies.GetProperty("nodes").EnumerateArray().Select(Comment).ToArray() : [],
             hasReplies && !hidden ? replies.GetProperty("totalCount").GetInt32() : 0);
+    }
+
+    private static string? AvatarUrl(JsonElement item)
+    {
+        if (!item.TryGetProperty("author", out var author) || author.ValueKind != JsonValueKind.Object
+            || !author.TryGetProperty("avatarUrl", out var avatar) || avatar.ValueKind != JsonValueKind.String
+            || !Uri.TryCreate(avatar.GetString(), UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return null;
+        return uri.ToString();
     }
 
     public void Dispose() { cache.Dispose(); gate.Dispose(); }
@@ -169,10 +178,10 @@ public sealed class DiscussionsClient(IHttpClientFactory clients, IConfiguration
               comments(first:20, after:$after) {
                 totalCount pageInfo { hasNextPage endCursor }
                 nodes {
-                  id bodyText createdAt isAnswer isMinimized author { login }
+                  id bodyText createdAt isAnswer isMinimized deletedAt author { login avatarUrl }
                   replies(first:5) {
                     totalCount
-                    nodes { id bodyText createdAt isAnswer isMinimized author { login } }
+                    nodes { id bodyText createdAt isAnswer isMinimized deletedAt author { login avatarUrl } }
                   }
                 }
               }
@@ -188,7 +197,7 @@ public record DiscussionPage(bool HasNextPage, string? EndCursor);
 public record DiscussionSummary(int Number, string Title, DiscussionCategory Category, string Author,
     string UpdatedAt, int CommentCount, bool IsAnswered, bool Locked, string Url, string Preview = "", string? ResourceCategory = null);
 public record DiscussionList(string Status, string RepositoryUrl, DiscussionCategory[] Categories, DiscussionSummary[] Items, DiscussionPage PageInfo, int? TotalCount = null);
-public record DiscussionComment(string Id, string Author, string Body, string CreatedAt, bool IsAnswer, DiscussionComment[] Replies, int ReplyCount);
+public record DiscussionComment(string Id, string Author, string? AvatarUrl, string Body, string CreatedAt, bool IsAnswer, bool IsDeleted, DiscussionComment[] Replies, int ReplyCount);
 public record DiscussionThread(string Status, DiscussionSummary Discussion, string Body, DiscussionComment[] Comments, DiscussionPage PageInfo);
 
 public static class DiscussionEndpoints

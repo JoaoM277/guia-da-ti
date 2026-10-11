@@ -44,7 +44,7 @@ static class DiscussionChangeChecks
             (await client.GetAsync("/test/login/777")).EnsureSuccessStatusCode();
             Check((await client.PutAsJsonAsync("/api/discussions/7", new DiscussionEdit("body", "title"))).StatusCode == HttpStatusCode.BadRequest, "Authenticated edits require CSRF");
             await Csrf(client);
-            var original = (await client.GetFromJsonAsync<DiscussionEdit>("/api/discussions/7/editable?commentId=comment-1"))!;
+            var original = (await client.GetFromJsonAsync<OwnedPublication>("/api/discussions/7/editable?commentId=comment-1"))!;
             Check(original.Body == "**Original** [link](https://example.com)", "Editor receives original Markdown without stripping links or formatting");
             (await client.PutAsJsonAsync("/api/discussions/7", new DiscussionEdit("body", "title"))).EnsureSuccessStatusCode();
             (await client.PutAsJsonAsync("/api/discussions/7/comments/comment-1", new DiscussionEdit("comment"))).EnsureSuccessStatusCode();

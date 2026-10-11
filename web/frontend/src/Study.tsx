@@ -5,7 +5,6 @@ import {
   LayoutGrid,
   List,
   MessageSquareText,
-  MousePointer2,
   Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,9 +26,9 @@ import { universityTypes } from "./university-options";
 import { LoadingImage } from "./LoadingImage";
 import { resourceImage } from './resource-image';
 import { ResourcePreview } from './ResourcePreview';
+import { isSponsored, pinSponsored } from './sponsored-resources';
 import { paginate, readPage } from "./pagination";
 import {
-  interactions,
   rankStudy,
   studyKey,
   studySorts,
@@ -77,33 +76,10 @@ export function StudyBadges({ activity }: { activity?: StudyActivity }) {
   const format = (n: number | null | undefined) =>
     n == null ? "—" : n.toLocaleString("pt-BR");
   return (
-    <div className="flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
-      <span className="inline-flex items-center gap-1 rounded border px-1.5 py-1">
-        <MessageSquareText className="size-3" />
-        {format(activity?.comments)} comentários
-      </span>
-      <span
-        title="Comentários, avaliações e hypes"
-        className="inline-flex items-center gap-1 rounded border px-1.5 py-1"
-      >
-        <MousePointer2 className="size-3" />
-        {format(activity ? interactions(activity) : null)} interações
-      </span>
-      <span className="inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-1 text-primary">
-        <Flame className="size-3" />
-        {format(activity?.hypes)} hypes
-      </span>
-      <span className="inline-flex items-center gap-1 rounded border px-1.5 py-1">
-        <Star className="size-3" />
-        {activity?.average != null
-          ? activity.average.toLocaleString("pt-BR", {
-              maximumFractionDigits: 1,
-            })
-          : activity
-            ? "Sem nota"
-            : "—"}
-        {activity && ` (${activity.ratings})`}
-      </span>
+    <div role="group" aria-label="Atividade do recurso" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap"><MessageSquareText aria-hidden="true" className="size-3" /><span><strong className="font-medium text-foreground">{format(activity?.comments)}</strong> comentários</span></span>
+      <span className="inline-flex items-center gap-1 whitespace-nowrap"><Flame aria-hidden="true" className="size-3" /><span><strong className="font-medium text-foreground">{format(activity?.hypes)}</strong> hypes</span></span>
+      <span className="inline-flex items-center gap-1 whitespace-nowrap"><Star aria-hidden="true" className="size-3" /><span>{activity?.ratings ? <><strong className="font-medium text-foreground">{activity.average?.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) ?? "—"}</strong> ({format(activity.ratings)})</> : activity ? "Sem avaliações" : "—"}</span></span>
     </div>
   );
 }
@@ -215,12 +191,12 @@ export function StudyListing({
     category === "universities" && institution !== "all"
       ? items.filter((r) => r.universityType === institution)
       : items;
-  const listing = paginate(rankStudy(filteredItems, activity, sort), page);
+  const listing = paginate(pinSponsored(rankStudy(filteredItems, activity, sort), "studying"), page);
   const changePage = (next: number) => {
     setPage(next);
     update("pagina", String(next), false);
   };
-  const detail = (r: Resource) => (
+  const detail = (r: Resource, showActivity = true) => (
     <>
       <div className="flex flex-wrap items-center gap-2">
         <a
@@ -230,6 +206,7 @@ export function StudyListing({
           {r.name}
         </a>
         {r.demo && <Badge variant="outline">Exemplo</Badge>}
+        {isSponsored(r, "studying") && <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-700 dark:text-amber-300">Patrocinado</Badge>}
         {r.universityType && (
           <Badge variant="outline">
             {universityTypes.find((t) => t.id === r.universityType)?.name}
@@ -239,7 +216,7 @@ export function StudyListing({
       <p className="my-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
         {r.summary}
       </p>
-      <StudyBadges activity={activity[studyKey(r)]} />
+      {showActivity && <StudyBadges activity={activity[studyKey(r)]} />}
     </>
   );
   return (
@@ -360,13 +337,18 @@ export function StudyListing({
             <article
               data-motion
               key={studyKey(r)}
-              className="relative flex min-w-0 cursor-pointer flex-col rounded-lg border bg-card transition-colors hover:bg-muted/30 focus-within:bg-muted/30 focus-within:outline-2 focus-within:outline-ring"
+              className={`relative flex min-w-0 cursor-pointer flex-col rounded-lg border bg-card transition-colors hover:bg-muted/30 focus-within:bg-muted/30 focus-within:outline-2 focus-within:outline-ring ${isSponsored(r, "studying") ? 'border-l-4 border-l-amber-500 bg-amber-500/5' : ''}`}
             >
-              <a href={resourcePath(r)} tabIndex={-1} aria-hidden="true">
-                <StudyCover resource={r} priority={index < 4} />
-              </a>
               <div className="flex flex-1 flex-col p-3">
-                <div className="flex-1">{detail(r)}</div>
+                <div className="flex flex-1 flex-col">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <a href={resourcePath(r)} tabIndex={-1} aria-hidden="true" className="relative z-10 rounded">
+                      <StudyCover small resource={r} priority={index < 4} />
+                    </a>
+                    <div className="min-w-0 flex-1">{detail(r, false)}</div>
+                  </div>
+                  <div className="mt-3"><StudyBadges activity={activity[studyKey(r)]} /></div>
+                </div>
                 <Button
                   asChild
                   size="sm"
@@ -390,7 +372,7 @@ export function StudyListing({
             <article
               data-motion
               key={studyKey(r)}
-              className="relative flex cursor-pointer items-center gap-3 p-3 transition-colors hover:bg-muted/30 focus-within:bg-muted/30 focus-within:outline-2 focus-within:outline-ring"
+              className={`relative flex cursor-pointer items-center gap-3 p-3 transition-colors hover:bg-muted/30 focus-within:bg-muted/30 focus-within:outline-2 focus-within:outline-ring ${isSponsored(r, "studying") ? 'border-l-4 border-l-amber-500 bg-amber-500/5' : ''}`}
             >
               <StudyCover small resource={r} priority={index < 4} />
               <div className="min-w-0 flex-1">{detail(r)}</div>
@@ -458,105 +440,59 @@ export function StudyDetail({ resource }: { resource: Resource }) {
     }
   }
   return (
-    <section
-      aria-label="Avaliações e discussão"
-      className="space-y-5"
-    >
-      <section aria-label="Avaliações" className="space-y-4 rounded-lg border bg-card p-4 sm:p-6">
-      <h2 className="text-xl font-semibold">Avaliações</h2>
-      <StudyBadges activity={a} />
-      <p className="text-xs text-muted-foreground">
-        Você pode dar uma nota e um hype por conta. As interações somam comentários,
-        avaliações e hypes.
-      </p>
-      {loading && (
-        <p role="status" className="text-sm text-muted-foreground">
-          Carregando atividade…
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      {resource.demo ? (
-        <p className="text-sm text-muted-foreground">
-          Este item é fictício e não recebe avaliações ou comentários.
-        </p>
-      ) : !auth?.session?.login ? (
-        <Button
-          disabled={auth?.loading || auth?.pending || !auth?.session?.enabled}
-          onClick={auth?.startLogin}
-        >
-          Entrar com GitHub para avaliar e comentar
-        </Button>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center gap-4">
-            <fieldset
-              disabled={busy || loading || !!error}
-              className="space-y-2"
-            >
-              <legend className="text-sm font-medium">Sua avaliação</legend>
-              <div
-                role="radiogroup"
-                aria-label="Nota de 1 a 5 estrelas"
-                className="flex gap-1"
-              >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <Button
-                    key={n}
-                    role="radio"
-                    aria-checked={a?.myRating === n}
-                    tabIndex={n === (a?.myRating || 1) ? 0 : -1}
-                    onKeyDown={(event) => {
-                      const direction = ["ArrowRight", "ArrowUp"].includes(
-                        event.key,
-                      )
-                        ? 1
-                        : ["ArrowLeft", "ArrowDown"].includes(event.key)
-                          ? -1
-                          : 0;
-                      if (direction) {
-                        event.preventDefault();
-                        const next = Math.max(1, Math.min(5, n + direction));
-                        event.currentTarget.parentElement
-                          ?.querySelectorAll<HTMLButtonElement>("button")
-                          [next - 1]?.focus();
-                        void publish("vote", { rating: next });
-                      }
-                    }}
-                    aria-label={`${n} ${n === 1 ? "estrela" : "estrelas"}`}
-                    size="icon-sm"
-                    variant="ghost"
-                    onClick={() => void publish("vote", { rating: n })}
-                  >
-                    <Star
-                      className={
-                        n <= (a?.myRating || 0)
-                          ? "fill-primary text-primary"
-                          : "text-muted-foreground"
-                      }
-                    />
-                  </Button>
-                ))}
-              </div>
-            </fieldset>
-            <Button
-              disabled={busy || loading || !!error}
-              variant={a?.myHype ? "default" : "outline"}
-              aria-pressed={a?.myHype || false}
-              onClick={() => void publish("vote", { hype: !a?.myHype })}
-            >
-              <Flame />
-              {a?.myHype ? "Remover hype" : "Dar hype"}
-            </Button>
+    <section aria-label="Avaliações e discussão" className="space-y-4">
+      <section aria-label="Avaliações" className="overflow-hidden rounded-lg border bg-card">
+        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Avaliações</h2>
+            <p className="text-xs text-muted-foreground">Você pode dar uma nota e um hype por conta.</p>
           </div>
-        </>
-      )}
-      {message && (
-        <p role="status" className="text-sm">{message}</p>
-      )}
+          <StudyBadges activity={a} />
+        </div>
+        {(loading || error) && <div className="border-b px-4 py-2 sm:px-5">{loading && <p role="status" className="text-xs text-muted-foreground">Carregando atividade…</p>}{error && <p role="alert" className="text-xs text-destructive">{error}</p>}</div>}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
+          {resource.demo ? (
+            <p className="text-sm text-muted-foreground">Este item é fictício e não recebe avaliações ou comentários.</p>
+          ) : !auth?.session?.login ? (
+            <Button size="sm" disabled={auth?.loading || auth?.pending || !auth?.session?.enabled} onClick={auth?.startLogin}>Entrar com GitHub para avaliar</Button>
+          ) : (
+            <>
+              <fieldset disabled={busy || loading || !!error} className="flex items-center gap-3">
+                <legend className="sr-only">Sua nota</legend>
+                <span aria-hidden="true" className="text-sm font-medium">Sua nota</span>
+                <div role="radiogroup" aria-label="Nota de 1 a 5 estrelas" className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Button
+                      key={n}
+                      role="radio"
+                      aria-checked={a?.myRating === n}
+                      tabIndex={n === (a?.myRating || 1) ? 0 : -1}
+                      onKeyDown={(event) => {
+                        const direction = ["ArrowRight", "ArrowUp"].includes(event.key) ? 1 : ["ArrowLeft", "ArrowDown"].includes(event.key) ? -1 : 0;
+                        if (direction) {
+                          event.preventDefault();
+                          const next = Math.max(1, Math.min(5, n + direction));
+                          event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("button")[next - 1]?.focus();
+                          void publish("vote", { rating: next });
+                        }
+                      }}
+                      aria-label={`${n} ${n === 1 ? "estrela" : "estrelas"}`}
+                      size="icon-sm"
+                      variant="ghost"
+                      onClick={() => void publish("vote", { rating: n })}
+                    >
+                      <Star className={n <= (a?.myRating || 0) ? "fill-primary text-primary" : "text-muted-foreground"} />
+                    </Button>
+                  ))}
+                </div>
+              </fieldset>
+              <Button size="sm" disabled={busy || loading || !!error} variant={a?.myHype ? "default" : "outline"} aria-pressed={a?.myHype || false} onClick={() => void publish("vote", { hype: !a?.myHype })}>
+                <Flame aria-hidden="true" />{a?.myHype ? "Remover hype" : "Dar hype"}
+              </Button>
+            </>
+          )}
+        </div>
+        {message && <p role="status" className="border-t px-4 py-2 text-xs text-muted-foreground sm:px-5">{message}</p>}
       </section>
       {!a?.discussion && !resource.demo && !!auth?.session?.login && (
             <form

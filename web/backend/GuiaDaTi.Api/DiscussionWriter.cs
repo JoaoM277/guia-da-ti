@@ -40,11 +40,12 @@ public sealed class DiscussionWriter(IHttpClientFactory clients, IConfiguration 
         var id = discussion.GetProperty("id").GetString();
         if (draft.ReplyToId is not null) {
             var commentData = await Query(token, """
-                query($id:ID!){node(id:$id){... on DiscussionComment { isMinimized replyTo { id } discussion { id } }}}
+                query($id:ID!){node(id:$id){... on DiscussionComment { isMinimized deletedAt replyTo { id } discussion { id } }}}
                 """, new { id = draft.ReplyToId }, cancellation);
             var comment = commentData.GetProperty("node");
             if (comment.ValueKind == JsonValueKind.Null || !comment.TryGetProperty("discussion", out var parent)
                 || parent.GetProperty("id").GetString() != id || comment.GetProperty("isMinimized").GetBoolean()
+                || comment.GetProperty("deletedAt").ValueKind != JsonValueKind.Null
                 || comment.GetProperty("replyTo").ValueKind != JsonValueKind.Null)
                 throw new DiscussionWriteRejectedException("Escolha um comentário válido deste tópico.");
         }
@@ -60,7 +61,7 @@ public sealed class DiscussionWriter(IHttpClientFactory clients, IConfiguration 
         var metadata = await Query(token, """
             query($owner:String!,$name:String!,$number:Int!){
               repository(owner:$owner,name:$name){isPrivate hasDiscussionsEnabled
-                discussion(number:$number){id title body author{... on User{databaseId}}}
+                discussion(number:$number){id title body viewerCanUpdate viewerCanDelete author{... on User{databaseId}}}
               }
             }
             """, new { owner = repository.Split('/')[0], name = repository.Split('/')[1], number }, cancellation);
@@ -71,12 +72,14 @@ public sealed class DiscussionWriter(IHttpClientFactory clients, IConfiguration 
         var discussionId = target.GetProperty("id").GetString();
         if (commentId is not null) {
             var node = await Query(token, """
-                query($id:ID!){node(id:$id){... on DiscussionComment{id body isMinimized author{... on User{databaseId}} discussion{id}}}}
+                query($id:ID!){node(id:$id){... on DiscussionComment{id body isMinimized deletedAt viewerCanUpdate viewerCanDelete author{... on User{databaseId}} discussion{id}}}}
                 """, new { id = commentId }, cancellation);
             target = node.GetProperty("node");
             if (target.ValueKind == JsonValueKind.Null || !target.TryGetProperty("discussion", out var parent)
                 || parent.GetProperty("id").GetString() != discussionId || target.GetProperty("isMinimized").GetBoolean())
                 throw new DiscussionWriteRejectedException("Escolha um comentário visível deste tópico.");
+            if (target.GetProperty("deletedAt").ValueKind != JsonValueKind.Null)
+                throw new DiscussionWriteRejectedException("Este comentário já foi excluído. As respostas continuam na conversa.");
         }
         if (!target.TryGetProperty("author", out var author) || author.ValueKind == JsonValueKind.Null
             || !author.TryGetProperty("databaseId", out var authorId) || authorId.ValueKind != JsonValueKind.Number
@@ -84,15 +87,20 @@ public sealed class DiscussionWriter(IHttpClientFactory clients, IConfiguration 
         return target;
     }
 
-    public async Task<DiscussionEdit> ReadOwnAsync(string token, string userId, int number, string? commentId, CancellationToken cancellation)
+    public async Task<OwnedPublication> ReadOwnAsync(string token, string userId, int number, string? commentId, CancellationToken cancellation)
     {
         var target = await Owned(token, userId, number, commentId, cancellation);
-        return new(target.GetProperty("body").GetString()!, commentId is null ? target.GetProperty("title").GetString() : null);
+        return new(target.GetProperty("body").GetString()!, commentId is null ? target.GetProperty("title").GetString() : null,
+            target.GetProperty("viewerCanUpdate").GetBoolean(), target.GetProperty("viewerCanDelete").GetBoolean());
     }
 
     public async Task ChangeAsync(string token, string userId, int number, string? commentId, DiscussionEdit? edit, CancellationToken cancellation)
     {
         var target = await Owned(token, userId, number, commentId, cancellation);
+        var allowed = target.GetProperty(edit is null ? "viewerCanDelete" : "viewerCanUpdate").GetBoolean();
+        if (!allowed) throw new DiscussionWriteRejectedException(edit is null
+            ? "Sua conta não tem permissão para excluir publicações neste repositório."
+            : "Sua conta não tem permissão para editar publicações neste repositório.");
         var discussionId = target.GetProperty("id").GetString();
         if (commentId is not null) {
             if (edit is null) await Query(token, "mutation($input:DeleteDiscussionCommentInput!){deleteDiscussionComment(input:$input){clientMutationId}}", new { input = new { id = commentId } }, cancellation);
@@ -113,13 +121,24 @@ public sealed class DiscussionWriter(IHttpClientFactory clients, IConfiguration 
         using var response = await client.SendAsync(request, cancellation);
         response.EnsureSuccessStatusCode();
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellation));
-        if (document.RootElement.TryGetProperty("errors", out _)) throw new DiscussionWriteRejectedException("O GitHub não autorizou a publicação. Confira suas permissões e tente novamente.");
+        if (document.RootElement.TryGetProperty("errors", out var errors)) {
+            var permissionError = errors.EnumerateArray().Any(error =>
+                error.TryGetProperty("type", out var type) && type.GetString() == "FORBIDDEN"
+                || error.TryGetProperty("message", out var message) && message.GetString() is { } text
+                    && (text.Contains("permission", StringComparison.OrdinalIgnoreCase)
+                        || text.Contains("access", StringComparison.OrdinalIgnoreCase)
+                        || text.Contains("authorize", StringComparison.OrdinalIgnoreCase)));
+            throw new DiscussionWriteRejectedException(permissionError
+                ? "Sua conta precisa de acesso de escrita ao repositório para realizar esta ação."
+                : "O GitHub recusou esta ação. Confira os dados e tente novamente.");
+        }
         return document.RootElement.GetProperty("data").Clone();
     }
 }
 
 public record DiscussionDraft(string Body, string? Title = null, string? CategoryId = null, int? Number = null, string? ReplyToId = null, string? CategoryName = null);
 public record DiscussionEdit(string Body, string? Title = null);
+public record OwnedPublication(string Body, string? Title, bool CanUpdate, bool CanDelete);
 public sealed class DiscussionWriteRejectedException(string message) : Exception(message);
 public static class DiscussionWriteEndpoints
 {

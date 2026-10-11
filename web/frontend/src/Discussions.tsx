@@ -3,7 +3,7 @@ import { Advertisement } from './Advertisement';
 import { PublicationActions } from './PublicationActions';
 import { ApproveContribution, Composer } from './Participation';
 import { DiscussionSkeleton } from './Loading';
-import { ArrowLeft, ArrowUpRight, MessageSquareText, Search } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ChevronDown, MessageSquareText, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,12 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { categories } from './catalog';
 import { DiscussionBody } from './DiscussionBody';
+import { LoadingImage } from './LoadingImage';
 
 type Category = { id: string; name: string };
 type PageInfo = { hasNextPage: boolean; endCursor: string | null };
 type Discussion = { number: number; title: string; preview: string; category: Category; resourceCategory?: string | null; author: string; updatedAt: string; commentCount: number; isAnswered: boolean; locked: boolean; url: string };
-type Comment = { id: string; author: string; body: string; createdAt: string; isAnswer: boolean; replies: Comment[]; replyCount: number };
+type Comment = { id: string; author: string; avatarUrl: string | null; body: string; createdAt: string; isAnswer: boolean; isDeleted: boolean; replies: Comment[]; replyCount: number };
 type DiscussionList = { status: 'ready'; repositoryUrl: string; categories: Category[]; items: Discussion[]; pageInfo: PageInfo; totalCount?: number | null };
 type Thread = { status: 'ready'; discussion: Discussion; body: string; comments: Comment[]; pageInfo: PageInfo };
 
@@ -59,21 +60,26 @@ function Pagination({ pageInfo, cursors, setCursors }: { pageInfo: PageInfo; cur
 }
 
 function CommentCard({ comment, url, number, onPublished, rootId, locked = false }: { comment: Comment; url: string; number: number; onPublished: () => void; rootId?: string; locked?: boolean }) {
+  const [expanded, setExpanded] = useState(true);
+  const avatarUrl = comment.avatarUrl || (comment.author !== 'Usuário removido' ? `https://github.com/${encodeURIComponent(comment.author)}.png?size=64` : null);
   return <article data-motion className={`min-w-0 ${rootId ? 'rounded-lg bg-muted/20 p-3' : 'p-4 sm:p-5'}`}>
-    <details open className="group/comment">
-      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 py-1 text-xs [&::-webkit-details-marker]:hidden">
-        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted font-semibold uppercase text-muted-foreground">{comment.author.slice(0, 1)}</span>
-        <span className="font-semibold">{comment.author}</span><span className="text-muted-foreground"><DateLabel value={comment.createdAt} /></span>{comment.isAnswer && <Badge variant="secondary" className="text-[10px]">Resposta aceita</Badge>}
-        <span className="ml-auto text-muted-foreground group-open/comment:hidden">Expandir comentário</span>
-      </summary>
-      <div className="ml-3.5 space-y-3 border-l pl-4 pt-2 pb-1 sm:pl-5">
-        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]">{comment.body}</p>
-        <div className="flex justify-end"><PublicationActions author={comment.author} number={number} commentId={comment.id} body={comment.body} hasReplies={comment.replyCount > 0} onChanged={onPublished} /></div>
-        {number > 0 && !locked && <Composer compact number={number} replyToId={rootId || comment.id} githubUrl={url} onPublished={onPublished} label="Responder" />}
-        {comment.replies.length > 0 && <div aria-label="Respostas ao comentário" className="space-y-3 pt-2">{comment.replies.map(reply => <CommentCard key={reply.id} comment={reply} url={url} number={number} locked={locked} onPublished={onPublished} rootId={rootId || comment.id} />)}</div>}
-        {comment.replyCount > comment.replies.length && <a className="inline-block text-xs text-muted-foreground hover:text-primary" href={url} target="_blank" rel="noopener noreferrer">Ver todas as {comment.replyCount} respostas no GitHub</a>}
-      </div>
-    </details>
+    <div className="flex items-start gap-1">
+      <details open={expanded} onToggle={event => setExpanded(event.currentTarget.open)} className="min-w-0 flex-1">
+        <summary className="flex w-full cursor-pointer list-none items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+          {avatarUrl ? <LoadingImage src={avatarUrl} alt="" width={28} height={28} referrerPolicy="no-referrer" className="size-7 shrink-0 rounded-full bg-muted" imageClassName="rounded-full object-cover" fallback={<span aria-hidden="true" className="flex size-full items-center justify-center font-semibold uppercase text-muted-foreground">{comment.author.slice(0, 1)}</span>} /> : <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted font-semibold uppercase text-muted-foreground">{comment.author.slice(0, 1)}</span>}
+          <span className="min-w-0 flex-1 truncate font-semibold">{comment.author}<span className="ml-2 font-normal text-muted-foreground"><DateLabel value={comment.createdAt} /></span></span>
+          {comment.isAnswer && <Badge variant="secondary" className="hidden text-[10px] sm:inline-flex">Resposta aceita</Badge>}
+          <ChevronDown aria-hidden="true" className={`size-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </summary>
+        <div className="ml-3.5 space-y-3 border-l pl-4 pt-3 pb-1 sm:pl-5">
+          <p className={`whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isDeleted ? 'italic text-muted-foreground' : ''}`}>{comment.isDeleted ? 'Comentário excluído. As respostas continuam abaixo.' : comment.body}</p>
+          {number > 0 && !locked && !comment.isDeleted && <Composer compact number={number} replyToId={rootId || comment.id} githubUrl={url} onPublished={onPublished} label="Responder" />}
+          {comment.replies.length > 0 && <div aria-label="Respostas ao comentário" className="space-y-3 pt-2">{comment.replies.map(reply => <CommentCard key={reply.id} comment={reply} url={url} number={number} locked={locked} onPublished={onPublished} rootId={rootId || comment.id} />)}</div>}
+          {comment.replyCount > comment.replies.length && <a className="inline-block text-xs text-muted-foreground hover:text-primary" href={url} target="_blank" rel="noopener noreferrer">Ver todas as {comment.replyCount} respostas no GitHub</a>}
+        </div>
+      </details>
+      {!comment.isDeleted && <div className="shrink-0 pt-1"><PublicationActions author={comment.author} number={number} commentId={comment.id} body={comment.body} hasReplies={comment.replyCount > 0} onChanged={onPublished} /></div>}
+    </div>
   </article>;
 }
 

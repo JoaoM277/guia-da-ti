@@ -14,7 +14,7 @@ export function CommunityLocationFilter({ value, onChange }: { value: LocationSe
   const selected = value.scope === 'regional' ? value.states : [];
   return <section aria-label="Filtrar comunidades por localização" className="rounded-lg border bg-card p-3 sm:p-4">
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-      <div><h2 className="text-lg font-semibold">Localização</h2><p className="mt-1 text-sm text-muted-foreground">Escolha estados ou regiões no mapa, o Brasil inteiro ou comunidades internacionais.</p></div>
+      <div><h2 className="text-lg font-semibold">Localização</h2><p className="mt-1 text-sm text-muted-foreground">Selecione estados ou regiões no mapa, o Brasil inteiro ou comunidades internacionais.</p></div>
       {value.scope && <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ scope: null, states: [] })}><RotateCcw className="size-4" />Limpar seleção</Button>}
     </div>
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
@@ -39,8 +39,8 @@ export function CommunityLocationFilter({ value, onChange }: { value: LocationSe
           {map.states.map(state => <text key={state.uf} x={state.x} y={state.y} textAnchor="middle" dominantBaseline="middle" aria-hidden="true"
             className={'pointer-events-none text-[11px] font-semibold ' + (value.scope === 'national' || selected.includes(state.uf) ? 'fill-primary-foreground' : 'fill-foreground')}>{state.uf}</text>)}
         </svg>
-        <p aria-live="polite" className="min-h-5 text-center text-xs text-muted-foreground">{hovered ? map.states.find(state => state.uf === hovered)?.name || brazilRegions.find(region => region.id === hovered)?.name : 'Clique para selecionar. Clique novamente para desmarcar.'}</p>
-        <p className="mt-2 text-center text-[10px] text-muted-foreground">Malha simplificada · IBGE</p></>}
+        <p aria-live="polite" className="min-h-5 text-center text-xs text-muted-foreground">{hovered ? map.states.find(state => state.uf === hovered)?.name || brazilRegions.find(region => region.id === hovered)?.name : 'Selecione no mapa. Clique de novo para remover.'}</p>
+        <p className="mt-2 text-center text-[10px] text-muted-foreground">Mapa simplificado · IBGE</p></>}
       </div>
       <div className="min-w-0 space-y-5">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">

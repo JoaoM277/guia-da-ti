@@ -15,7 +15,7 @@ public static class AdvertisingAdmin
 public record AdPlacement(string Id, string Name, int Capacity);
 public record AdSettings(int MaxCampaigns, int RotationSeconds, AdPlacement[] Placements)
 {
-    public static AdSettings Default => new(100, 45, [new("forum-feed", "Lista do fórum", 5), new("forum-topic", "Conversas do fórum", 5), new("study-topic", "Discussões de Estudar", 5)]);
+    public static AdSettings Default => new(100, 45, [new("site-top-banner", "Banner no topo do site", 5), new("forum-feed", "Lista do fórum", 5), new("forum-topic", "Conversas do fórum", 5), new("study-topic", "Discussões de Estudar", 5)]);
 }
 public record AdDraft(string Company, string Title, string Description, string Url, string? ImageUrl,
     string[] Placements, int Weight, bool Enabled, DateTimeOffset StartsAt, DateTimeOffset? EndsAt);
@@ -36,7 +36,7 @@ public sealed class Advertising(IConfiguration config, IWebHostEnvironment envir
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly IDataProtector protector = protection.CreateProtector("GuiaDaTi.Advertising.v1");
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
-    public static readonly string[] PlacementIds = ["forum-feed", "forum-topic", "study-topic"];
+    public static readonly string[] PlacementIds = ["site-top-banner", "forum-feed", "forum-topic", "study-topic"];
 
     public async Task<AdStore> Snapshot(CancellationToken cancellation = default)
     {
@@ -156,7 +156,7 @@ public sealed class Advertising(IConfiguration config, IWebHostEnvironment envir
         var imageOnly = draft.Title.Length == 0 && draft.Description.Length == 0 && !string.IsNullOrWhiteSpace(draft.ImageUrl);
         if ((!imageOnly && (draft.Company.Length == 0 || draft.Title.Length == 0 || draft.Description.Length == 0)) || draft.Company.Length > 80
             || draft.Title.Length > 120 || draft.Description.Length > 500
-            || draft.Placements is null || draft.Placements.Length == 0 || draft.Placements.Length > 3
+            || draft.Placements is null || draft.Placements.Length == 0 || draft.Placements.Length > PlacementIds.Length
             || draft.Placements.Distinct().Count() != draft.Placements.Length || draft.Placements.Any(p => !PlacementIds.Contains(p))
             || draft.Weight is < 1 or > 10 || draft.StartsAt == default || draft.EndsAt <= draft.StartsAt)
             throw new ArgumentException("Informe imagem e link ou preencha empresa, título e descrição. Escolha os espaços, prioridade de 1 a 10 e término posterior ao início.");
@@ -196,7 +196,12 @@ public sealed class Advertising(IConfiguration config, IWebHostEnvironment envir
         await using var input = File.OpenRead(path);
         var data = await JsonSerializer.DeserializeAsync<AdStore>(input, Json, cancellation);
         if (data is null || data.Version != 1 || data.Settings is null || data.Campaigns is null || data.Receipts is null) throw new InvalidDataException("Registro de anúncios inválido.");
-        return data;
+        // Add newly introduced placements to stores created by older versions.
+        var placements = AdSettings.Default.Placements.Select(placement => placement with
+        {
+            Capacity = data.Settings.Placements?.FirstOrDefault(saved => saved.Id == placement.Id)?.Capacity ?? placement.Capacity,
+        }).ToArray();
+        return data with { Settings = data.Settings with { Placements = placements } };
     }
 
     private async Task Write(AdStore store, CancellationToken cancellation)

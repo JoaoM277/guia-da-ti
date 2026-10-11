@@ -21,6 +21,7 @@ small { display: block; color: var(--muted); font-size: 12px; line-height: 1.5; 
 .query { display: block; width: max-content; max-width: 390px; white-space: nowrap; overflow: hidden; }
 .search-hint { margin-left: auto; color: var(--muted); font-size: 11px; }
 .result { display: flex; align-items: center; gap: 12px; min-height: 59px; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 8px; }
+.detail-card { max-width: 590px; min-height: 178px; padding: 17px 19px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }.detail-card h3 { margin: 10px 0 7px; font-size: 19px; letter-spacing: -.3px; }.detail-card p { margin: 0 0 17px; color: var(--muted); font-size: 13px; line-height: 1.6; }.detail-card .target { display: inline-block; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; font-size: 12px; }
 strong { display: block; font-size: 14px; font-weight: 600; }
 .result-icon, .avatar { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; background: var(--soft); color: var(--accent); font-weight: 700; }
 .row-arrow { margin-left: auto; color: var(--accent); }
