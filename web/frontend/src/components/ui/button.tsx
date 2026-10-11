@@ -26,7 +26,7 @@ const buttonVariants = cva(
         sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 px-6 has-[>svg]:px-4",
         inline: "h-auto p-0 whitespace-normal",
-        menu: "h-auto min-h-11 w-full justify-start whitespace-normal px-3 py-2 text-left",
+        menu: "h-auto min-h-11 w-full justify-start whitespace-normal px-3 py-0 text-left",
         icon: "size-9",
         "icon-xs": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
         "icon-sm": "size-8",

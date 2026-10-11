@@ -1,4 +1,4 @@
-export type GuideStepId = 'explore' | 'communities' | 'creators' | 'study' | 'inform' | 'networking' | 'practice' | 'career' | 'forum' | 'contribute' | 'about' | 'transparency' | 'github-account' | 'github-login' | 'github-participate' | 'tutorials' | 'platforms' | 'universities' | 'bootcamps' | 'roadmaps' | 'books' | 'certifications' | 'news' | 'blogs' | 'newsletters' | 'podcasts' | 'articles' | 'studies' | 'case-studies' | 'reports' | 'events' | 'meetups' | 'conferences' | 'hackathons' | 'tools' | 'open-source' | 'challenges' | 'labs' | 'jobs' | 'scholarships' | 'mentoring' | 'volunteering';
+export type GuideStepId = 'explore' | 'communities' | 'creators' | 'study' | 'inform' | 'networking' | 'practice' | 'career' | 'forum' | 'contribute' | 'about' | 'transparency' | 'advertising' | 'github-account' | 'github-login' | 'github-participate' | 'tutorials' | 'platforms' | 'universities' | 'bootcamps' | 'roadmaps' | 'books' | 'certifications' | 'news' | 'blogs' | 'newsletters' | 'podcasts' | 'articles' | 'studies' | 'case-studies' | 'reports' | 'events' | 'meetups' | 'conferences' | 'hackathons' | 'tools' | 'open-source' | 'challenges' | 'labs' | 'jobs' | 'scholarships' | 'mentoring' | 'volunteering';
 export type GuideStep = {
   id: GuideStepId; label: string; category: string; description: string; tip: string; action: string; href: string;
   reason?: string; selection?: string;
@@ -162,7 +162,14 @@ const categoryGuides: readonly CategoryGuide[] = [
 
 const categoryGuideById = Object.fromEntries(categoryGuides.map(guide => [guide.id, guide])) as Partial<Record<GuideStepId, CategoryGuide>>;
 
-export const animationGuideSteps: readonly GuideStep[] = [...guideSteps, ...githubGuideSteps, ...aboutGuideSteps, ...categoryGuides];
+const advertisingGuideStep: GuideStep = {
+  id: 'advertising', label: 'Conheça os espaços de divulgação', category: 'Divulgação',
+  description: 'Veja onde os anúncios aparecem no Guia, do banner no topo às conversas do fórum.',
+  tip: 'Toda a faixa do banner superior abre o site anunciado.',
+  action: 'Ver espaços e formatos', href: '/divulgue',
+};
+
+export const animationGuideSteps: readonly GuideStep[] = [...guideSteps, ...githubGuideSteps, ...aboutGuideSteps, ...categoryGuides, advertisingGuideStep];
 
 export function guideSectionForGroup(category?: string): GuideStepId {
   const sections: Record<string, GuideStepId> = { communities: 'communities', creators: 'creators', learn: 'study', inform: 'inform', connect: 'networking', create: 'practice', opportunities: 'career' };

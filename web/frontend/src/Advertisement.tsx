@@ -6,9 +6,16 @@ import { LoadingImage } from './LoadingImage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type Creative = { id: string; company: string; title: string; description: string; imageUrl: string | null; clickUrl: string; ticket: string };
-export function Advertisement({ placement = 'forum-feed', preview = false, listItem = false }: { placement?: 'site-top-banner' | 'forum-feed' | 'forum-topic' | 'study-topic'; preview?: boolean; listItem?: boolean }) {
+type AdPlacement = 'site-top-banner' | 'forum-feed' | 'forum-topic' | 'study-topic';
+const previewCreatives: Record<AdPlacement, Creative> = {
+  'site-top-banner': { id: 'preview-top', company: 'Projeto de exemplo', title: 'Uma trilha para sua próxima etapa', description: 'Explore cursos e conteúdos de tecnologia.', imageUrl: null, clickUrl: '/divulgue', ticket: '' },
+  'forum-feed': { id: 'preview-feed', company: 'Projeto de exemplo', title: 'Conheça uma ferramenta para estudar', description: 'Veja como ela pode ajudar no seu próximo projeto.', imageUrl: null, clickUrl: '/divulgue', ticket: '' },
+  'forum-topic': { id: 'preview-topic', company: 'Projeto de exemplo', title: 'Uma solução para quem desenvolve', description: 'Conheça recursos que podem apoiar seu trabalho.', imageUrl: null, clickUrl: '/divulgue', ticket: '' },
+  'study-topic': { id: 'preview-study', company: 'Projeto de exemplo', title: 'Continue aprendendo', description: 'Explore materiais para aprofundar seus estudos.', imageUrl: null, clickUrl: '/divulgue', ticket: '' },
+};
+export function Advertisement({ placement = 'forum-feed', preview = false, listItem = false }: { placement?: AdPlacement; preview?: boolean; listItem?: boolean }) {
   const [hiddenUntil, setHiddenUntil] = useState(0);
-  const [ad, setAd] = useState<Creative | null>(null);
+  const [ad, setAd] = useState<Creative | null>(() => preview ? previewCreatives[placement] : null);
   const [enabled, setEnabled] = useState(true);
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -78,18 +85,17 @@ export function Advertisement({ placement = 'forum-feed', preview = false, listI
   }, [ad, preview, hiddenUntil]);
   if ((hiddenUntil || !enabled) && !preview) return null;
   const imageOnly = ad?.imageUrl && !ad.title.trim() && !ad.description.trim();
-  const menu = <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs" className={ad ? 'absolute right-2 top-2 z-10 bg-background/90 hover:bg-background' : 'ml-auto'} aria-label="Opções da publicidade"><MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+  const menu = preview ? null : <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs" className={ad ? 'absolute right-2 top-2 z-10 bg-background/90 hover:bg-background' : 'ml-auto'} aria-label="Opções da publicidade"><MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
     <DropdownMenuItem asChild><a href="/divulgue"><Info />Sobre este espaço</a></DropdownMenuItem>
     {!preview && <DropdownMenuItem onSelect={() => { setAd(null); setHiddenUntil(hideAdsTemporarily()); }}><EyeOff />Ocultar anúncios por 4 horas</DropdownMenuItem>}
   </DropdownMenuContent></DropdownMenu>;
   if (placement === 'site-top-banner') {
     if (!ad && !preview) return null;
-    const banner = <aside ref={root} data-motion aria-label="Publicidade no topo do site" className="relative w-full overflow-hidden border-b bg-muted/20">
-      {!ad ? <div className="mx-auto flex min-h-9 max-w-7xl items-center gap-2 px-4 text-xs text-muted-foreground"><Megaphone className="size-3.5" aria-hidden="true" /><span className="font-medium">Publicidade</span><span aria-hidden="true">·</span><span>Espaço reservado</span>{menu}</div> : imageOnly ? <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="block w-full"><LoadingImage src={ad.imageUrl!} alt={ad.company} referrerPolicy="no-referrer" className="mx-auto min-h-9 w-full max-w-7xl" imageClassName="h-auto max-h-14 w-full object-contain" fallback={<span className="flex min-h-9 items-center justify-center text-sm font-medium">{ad.company}</span>} /></a> : <div key={ad.id} className="mx-auto flex min-h-12 max-w-7xl items-center gap-3 px-4 py-1 pr-12">
-      {ad.imageUrl && <a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="hidden shrink-0 sm:block"><LoadingImage src={ad.imageUrl} alt={ad.company} referrerPolicy="no-referrer" className="h-9 w-24" imageClassName="object-contain" /></a>}
-      <span className="shrink-0 text-[10px] text-muted-foreground">Publicidade</span><div className="min-w-0 flex-1 truncate text-xs"><strong className="font-semibold">{ad.title}</strong><span className="ml-2 text-muted-foreground">{ad.description}</span></div><a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-primary">Saiba mais</a>
-    </div>}
-      {ad && menu}
+    const banner = <aside ref={root} data-motion aria-label="Publicidade no topo do site" className={`relative isolate w-full overflow-hidden border-b bg-background shadow-sm ${preview ? '' : 'sticky top-0 z-[100]'}`}>
+      {!ad ? <div className="mx-auto flex min-h-8 max-w-7xl items-center px-4 text-xs text-muted-foreground">Espaço reservado</div> : imageOnly ? <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="block w-full"><LoadingImage src={ad.imageUrl!} alt={ad.company} referrerPolicy="no-referrer" className="mx-auto min-h-8 w-full max-w-7xl" imageClassName="h-auto max-h-12 w-full object-contain" fallback={<span className="flex min-h-8 items-center justify-center text-sm font-medium">{ad.company}</span>} /></a> : <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="mx-auto flex min-h-11 max-w-7xl items-center gap-3 px-4 py-0.5">
+      {ad.imageUrl && <LoadingImage src={ad.imageUrl} alt="" aria-hidden="true" referrerPolicy="no-referrer" className="hidden h-8 w-24 shrink-0 sm:block" imageClassName="object-contain" />}
+      <span className="min-w-0 flex-1 truncate text-xs"><strong className="font-semibold">{ad.title}</strong><span className="ml-2 text-muted-foreground">{ad.description}</span></span><span className="shrink-0 text-xs font-semibold text-primary">Saiba mais</span>
+    </a>}
     </aside>;
     return listItem ? <li>{banner}</li> : banner;
   }
@@ -100,8 +106,8 @@ export function Advertisement({ placement = 'forum-feed', preview = false, listI
       {menu}
     </div>}
     {ad && menu}
-    {ad && imageOnly ? <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="block w-full motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"><LoadingImage src={ad.imageUrl!} alt={`Anúncio de ${ad.company}`} referrerPolicy="no-referrer" className="aspect-[4/1] w-full bg-muted" imageClassName="object-cover" /></a> : ad ? <div key={ad.id} className="flex flex-col gap-4 pr-8 sm:flex-row sm:items-center motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
-      {ad.imageUrl && <a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Abrir site de ${ad.company}`} className="block w-full shrink-0 sm:w-40"><LoadingImage src={ad.imageUrl} alt={ad.company} referrerPolicy="no-referrer" className="aspect-video w-full rounded-md bg-muted" imageClassName="object-contain" /></a>}
+    {ad && imageOnly ? <a key={ad.id} href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Publicidade: abrir site de ${ad.company}`} className="block w-full motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"><LoadingImage src={ad.imageUrl!} alt={`Anúncio de ${ad.company}`} referrerPolicy="no-referrer" className="aspect-[4/1] w-full bg-muted" imageClassName="object-cover" /></a> : ad ? <div key={ad.id} className="flex flex-col gap-3 pr-8 sm:flex-row sm:items-center sm:gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      {ad.imageUrl && <a href={ad.clickUrl} target="_blank" rel="noopener noreferrer" aria-label={`Abrir site de ${ad.company}`} className="block h-24 w-full shrink-0 sm:aspect-video sm:h-auto sm:w-40"><LoadingImage src={ad.imageUrl} alt={ad.company} referrerPolicy="no-referrer" className="h-full w-full rounded-md bg-muted" imageClassName="object-contain" /></a>}
       <div className="min-w-0 flex-1 space-y-2"><p className="text-base font-semibold">{ad.title}</p><p className="text-sm leading-relaxed text-muted-foreground">{ad.description}</p><Button asChild size="sm"><a href={ad.clickUrl} target="_blank" rel="noopener noreferrer">Abrir site<ArrowUpRight /></a></Button></div>
     </div> : <p className="pl-9 text-sm text-muted-foreground">Espaço para publicidade</p>}
   </aside>;

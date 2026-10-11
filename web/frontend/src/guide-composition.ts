@@ -90,6 +90,17 @@ const sectionDemos: Partial<Record<typeof step.id, SectionDemo>> = {
 const demo = sectionDemos[step.id] ?? { items: ['Links por categoria', 'Detalhes das indicações', 'Conteúdo na fonte'], benefits: ['Encontre referências', 'Compare opções'], filters: ['Objetivo', 'Assunto', 'Detalhes'], useTitle: step.category, useDetail: 'Consulte os detalhes desta seção na página de origem', useAction: 'Abrir página' };
 const phase = parameters.get('etapa');
 let scene = scenes[step.id] ?? scenes.explore!;
+if (step.id === 'advertising') {
+  const positions: Record<string, { title: string; detail: string; context: string }> = {
+    'site-top-banner': { title: 'Faixa no topo', detail: 'A faixa inteira abre o site anunciado.', context: 'Acima do menu principal' },
+    'forum-feed': { title: 'Anúncio no fórum', detail: 'Aparece entre os tópicos da página.', context: 'Lista de conversas' },
+    'forum-topic': { title: 'Anúncio na conversa', detail: 'Fica entre o tópico e os comentários.', context: 'Página de uma conversa' },
+    'study-topic': { title: 'Anúncio em Estudar', detail: 'Aparece nas conversas de recursos de estudo.', context: 'Discussões sobre cursos e livros' },
+    'sponsored-list': { title: 'Indicação patrocinada', detail: 'Um recurso em destaque na lista da categoria.', context: 'Listas do Guia' },
+  };
+  const position = positions[parameters.get('posicao') || 'site-top-banner'] || positions['site-top-banner'];
+  scene = `<div class="scene-title"><span>Onde divulgar</span><small>${position.context}</small></div><div class="results"><div class="detail-card"><span class="chip">${position.context}</span><h3>${position.title}</h3><p>${position.detail}</p><span class="target">Saiba mais ↗</span></div></div>${completion('Veja os formatos disponíveis no Guia')}`;
+}
 if (phase === 'what') {
   scene = `<div class="scene-title"><span>${step.category}</span><small>O que você encontra aqui</small></div>${tabs(['Conheça a seção', step.category])}<div class="results">${demo.items.map((item, i) => row(item, 'Explore as indicações da comunidade', String(i + 1))).join('')}</div>${completion('O Guia ajuda você a encontrar um ponto de partida')}`;
 } else if (phase === 'why') {

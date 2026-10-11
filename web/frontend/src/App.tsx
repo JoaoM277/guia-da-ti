@@ -35,13 +35,12 @@ import { NavigationCard } from './NavigationCard';
 import { BrandMark } from './BrandMark';
 import { Motion } from './Motion';
 import { Participation, UserControls } from './Participation';
-import { ArrowLeft, ArrowUpRight, Award, BookOpen, BriefcaseBusiness, CalendarDays, ChevronDown, Code, ExternalLink, FileText, FlaskConical, Github, Globe2, GraduationCap, Headphones, Instagram, Linkedin, Mail, Map, Menu, Newspaper, Pin, Twitter, Users, Wrench, Youtube, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Award, BookOpen, BriefcaseBusiness, CalendarDays, ChevronDown, Code, ExternalLink, FileText, FlaskConical, Github, Globe2, GraduationCap, Headphones, Instagram, Linkedin, Mail, Map, Menu, Newspaper, Pin, Twitter, Users, Wrench, X, Youtube, type LucideIcon } from 'lucide-react';
 import { Accordion } from 'radix-ui';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Dialog } from 'radix-ui';
 import { categories, groups, labels, pageInfo, resourcePath, resources, type Resource } from './catalog';
@@ -82,8 +81,9 @@ function ResourceIcon({ resource, platform }: { resource: Resource; platform: st
 }
 
 function ResourceDetailDialog({ resource, extra }: { resource: Resource; extra: string }) {
-  return <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-50 bg-black/55" /><Dialog.Content className="fixed top-1/2 left-1/2 z-50 max-h-[85dvh] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 space-y-4 overflow-y-auto rounded-xl border bg-popover p-6 text-popover-foreground shadow-xl">
-    <Dialog.Title className="text-xl font-semibold">{resource.name}</Dialog.Title>
+  return <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-50 bg-black/55" /><Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl">
+    <div className="relative shrink-0 border-b px-6 py-4 pr-12"><Dialog.Title className="text-xl font-semibold">{resource.name}</Dialog.Title><Dialog.Close aria-label="Fechar detalhes" className="absolute right-4 top-4 rounded-sm p-1 text-muted-foreground hover:bg-accent hover:text-foreground"><X aria-hidden="true" className="size-4" /></Dialog.Close></div>
+    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
     <Dialog.Description className="text-sm leading-relaxed text-muted-foreground">{resource.summary}</Dialog.Description>
     {resource.imageUrl && <StudyCover resource={resource} priority />}
     <p className="whitespace-pre-wrap text-sm leading-relaxed">{resource.description}</p>
@@ -92,7 +92,7 @@ function ResourceDetailDialog({ resource, extra }: { resource: Resource; extra: 
     {resource.communityMembers && <p className="text-sm"><span className="font-medium">{communityMembersLabel(resource.communityMembers)}</span><span className="ml-2 text-xs text-muted-foreground">Informado em {resource.communityMembers.checkedAt.split('-').reverse().join('/')}</span></p>}
     <div className="flex flex-wrap gap-2">{resource.areas.map(area => <Badge asChild variant="outline" key={area}><a href={`/areas/${area}`}>{labels[area] || area}</a></Badge>)}{resource.languages.map(language => <Badge variant="secondary" key={language}>{language}</Badge>)}</div>
     {resource.type==='communities' && !!resource.communityLinks?.length && <div className="space-y-2"><p className="text-sm font-medium">Onde encontrar a comunidade</p><div className="flex flex-wrap gap-2">{resource.communityLinks.map(link=><Button asChild variant="outline" key={link.platform}><a href={link.url} target="_blank" rel="noopener noreferrer">{communityPlatforms.find(item=>item.id===link.platform)?.name}<ArrowUpRight /></a></Button>)}</div></div>}
-    <div className="flex flex-wrap gap-2">{(resource.type!=='communities' || !resource.communityLinks?.length) && <Button asChild><a href={resource.url} target="_blank" rel="noopener noreferrer">{resource.type==='communities'?'Abrir site':'Abrir conteúdo'}<ExternalLink /></a></Button>}<Dialog.Close asChild><Button variant="outline">Fechar</Button></Dialog.Close></div>
+    </div><div className="flex shrink-0 flex-wrap gap-2 border-t px-6 py-4">{(resource.type!=='communities' || !resource.communityLinks?.length) && <Button asChild><a href={resource.url} target="_blank" rel="noopener noreferrer">{resource.type==='communities'?'Abrir site':'Abrir conteúdo'}<ExternalLink /></a></Button>}<Dialog.Close asChild><Button variant="outline">Fechar</Button></Dialog.Close></div>
   </Dialog.Content></Dialog.Portal>;
 }
 
@@ -287,37 +287,36 @@ export function App({ path }: { path: string }) {
             <UserControls dark={dark} toggleTheme={toggleTheme} />
             <Sheet>
               <SheetTrigger asChild><Button variant="ghost" size="icon" className="xl:hidden" aria-label="Abrir navegação"><Menu /></Button></SheetTrigger>
-              <SheetContent className="w-[min(88vw,24rem)] overflow-y-auto p-0">
+              <SheetContent className="w-[min(88vw,24rem)] gap-0 overflow-y-auto p-0">
                 <SheetHeader className="border-b px-5 py-5">
                   <SheetTitle>Navegação</SheetTitle>
                   <SheetDescription>Escolha uma categoria para ver as opções.</SheetDescription>
                 </SheetHeader>
-                <nav aria-label="Navegação para celular" className="space-y-5 px-4 py-5">
-                  <SheetClose asChild><Button asChild variant={home ? 'secondary' : 'ghost'} className="w-full justify-start"><a href="/" aria-current={home ? 'page' : undefined}>Início</a></Button></SheetClose>
-                  <Accordion.Root type="single" collapsible className="divide-y" defaultValue={groups.find(group => group.categories.some(category => category.id === page.category?.id))?.id}>
+                <nav aria-label="Navegação para celular" className="flex flex-1 flex-col overflow-y-auto px-4 py-4">
+                  <div className="overflow-hidden border divide-y">
+                    <SheetClose asChild><Button asChild size="menu" variant={home ? 'secondary' : 'ghost'} className="min-h-11 rounded-none"><a href="/" aria-current={home ? 'page' : undefined}>Início</a></Button></SheetClose>
+                    <Accordion.Root type="single" collapsible className="divide-y" defaultValue={groups.find(group => group.categories.some(category => category.id === page.category?.id))?.id}>
                     {groups.map(group => ['creators', 'communities'].includes(group.id) ? (
-                      <SheetClose asChild key={group.id}><Button asChild size="menu" variant={page.category?.id === group.id ? 'secondary' : 'ghost'}><a href={'/' + group.categories[0].route} aria-current={page.category?.id === group.id ? 'page' : undefined}>{group.name}</a></Button></SheetClose>
+                      <SheetClose asChild key={group.id}><Button asChild size="menu" variant={page.category?.id === group.id ? 'secondary' : 'ghost'} className="rounded-none"><a href={'/' + group.categories[0].route} aria-current={page.category?.id === group.id ? 'page' : undefined}>{group.name}</a></Button></SheetClose>
                     ) : (
                       <Accordion.Item key={group.id} value={group.id}>
                         <Accordion.Header>
-                          <Accordion.Trigger asChild data-current={group.categories.some(category => category.id === page.category?.id)}><Button variant="ghost" size="menu" className="group justify-between data-[current=true]:bg-accent data-[current=true]:text-primary">
+                          <Accordion.Trigger asChild data-current={group.categories.some(category => category.id === page.category?.id)}><Button variant="ghost" size="menu" className="group min-h-11 justify-between rounded-none text-sm font-medium data-[current=true]:bg-accent data-[current=true]:text-primary">
                             {group.name}<ChevronDown aria-hidden="true" className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
                           </Button></Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content>
-                          <ul className="mb-3 ml-3 space-y-1 border-l pl-2">
+                          <ul className="mb-2 ml-4 space-y-1 border-l pl-2">
                             {group.categories.filter(category => category.id !== 'courses').map(category => (
-                              <li key={category.id}><SheetClose asChild><Button asChild size="menu" variant={category.id === page.category?.id && (!('platform' in category) || platform === category.platform) ? 'secondary' : 'ghost'}><a href={'platform' in category ? `/criadores?plataforma=${category.platform}` : `/${category.route}`} aria-current={category.id === page.category?.id && (!('platform' in category) || platform === category.platform) ? 'page' : undefined}>{category.name}</a></Button></SheetClose></li>
+                              <li key={category.id}><SheetClose asChild><Button asChild size="sm" variant={category.id === page.category?.id && (!('platform' in category) || platform === category.platform) ? 'secondary' : 'ghost'} className="h-9 w-full justify-start rounded-none px-3"><a href={'platform' in category ? `/criadores?plataforma=${category.platform}` : `/${category.route}`} aria-current={category.id === page.category?.id && (!('platform' in category) || platform === category.platform) ? 'page' : undefined}>{category.name}</a></Button></SheetClose></li>
                             ))}
                           </ul>
                         </Accordion.Content>
                       </Accordion.Item>
                     ))}
-                  </Accordion.Root>
-                  <Separator />
-                  <div className="space-y-1">
-                    <SheetClose asChild><Button asChild variant={path === '/sobre' ? 'secondary' : 'ghost'} className="w-full justify-start"><a href="/sobre" aria-current={path === '/sobre' ? 'page' : undefined}>Sobre</a></Button></SheetClose>
-                    <SheetClose asChild><Button variant="ghost" className="w-full justify-start" onClick={() => setTimeout(() => openContribution(), 0)}>Contribuir</Button></SheetClose>
+                    </Accordion.Root>
+                    <SheetClose asChild><Button asChild size="menu" variant={path === '/sobre' ? 'secondary' : 'ghost'} className="min-h-11 rounded-none text-sm font-medium"><a href="/sobre" aria-current={path === '/sobre' ? 'page' : undefined}>Sobre</a></Button></SheetClose>
+                    <SheetClose asChild><Button size="menu" variant="ghost" className="min-h-11 rounded-none text-sm font-medium" onClick={() => setTimeout(() => openContribution(), 0)}>Contribuir</Button></SheetClose>
                   </div>
                 </nav>
               </SheetContent>
@@ -336,7 +335,7 @@ export function App({ path }: { path: string }) {
         ) : path === '/admin/anuncios' ? (
           <AdvertisingAdmin />
         ) : path === '/divulgue' || path === '/empresas' ? (
-          <Companies />
+          <Companies dark={dark} />
         ) : path === '/sobre' ? (
           <GuideLanding dark={dark} />
         ) : page.resource ? (
@@ -346,15 +345,15 @@ export function App({ path }: { path: string }) {
               <div className="min-w-0 flex-1 space-y-3"><div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"><a href={page.category!.id === 'youtube' ? '/criadores?plataforma=youtube' : page.category!.id === 'courses' ? '/sobre#por-onde-comecar' : `/${page.category!.route}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"><ArrowLeft aria-hidden="true" className="size-4" />{page.category!.id === 'youtube' ? 'Criadores no YouTube' : page.category!.id === 'courses' ? 'Ver categorias' : page.category!.name}</a>{page.resource.demo && <Badge variant="outline">Exemplo fictício</Badge>}</div><h1 className="text-3xl font-semibold tracking-tight">{page.resource.name}</h1><p className="text-sm leading-relaxed text-muted-foreground">{page.resource.summary}</p></div>
               {(studyTypes.has(page.resource.type) || page.resource.imageUrl) && <div className="w-full shrink-0 overflow-hidden rounded-lg border sm:w-48"><StudyCover resource={page.resource} priority /></div>}
             </header>
-            <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_15rem]">
+            <div className="flex flex-col gap-5 p-4 sm:p-6">
             <div className="min-w-0 space-y-4">
             <p className="whitespace-pre-wrap leading-relaxed">{page.resource.description}</p>
             {!!page.resource.technologies.length && <div className="flex flex-wrap gap-2">{page.resource.technologies.map(t => <Badge asChild variant="secondary" key={t}><a href={`/tecnologias/${t}`}>{labels[t] || t}</a></Badge>)}</div>}
             {page.resource.type==='communities' && <div className="space-y-3"><p className="text-sm text-muted-foreground">{resourceExtra(page.resource)}{page.resource.communityAudience ? ` · Público: ${communityAudiences.find(item=>item.id===page.resource!.communityAudience)?.name}` : ''}</p><div className="flex flex-wrap gap-2">{page.resource.communityLinks?.map(link=><Button asChild variant="outline" key={link.platform}><a href={link.url} target="_blank" rel="noopener noreferrer">{communityPlatforms.find(item=>item.id===link.platform)?.name}<ArrowUpRight /></a></Button>)}</div></div>}
             </div>
-            <aside aria-label="Informações e links do recurso" className="flex flex-col gap-4 rounded-lg bg-muted/30 p-4 lg:self-start">
-            <dl className="grid grid-cols-2 gap-3 text-sm lg:grid-cols-1"><div className="space-y-1"><dt className="text-xs text-muted-foreground">Idiomas</dt><dd>{page.resource.languages.join(', ') || 'Não informado'}</dd></div><div className="space-y-1"><dt className="text-xs text-muted-foreground">Última atualização</dt><dd>{page.resource.updatedAt.split('-').reverse().join('/')}</dd></div></dl>
-            <p className="text-xs leading-relaxed text-muted-foreground">O conteúdo e as informações completas ficam no site de origem.</p>
+            <aside aria-label="Informações e links do recurso" className="flex flex-col gap-4 rounded-lg bg-muted/30 p-4 lg:flex-row lg:items-center lg:justify-between">
+            <dl className="grid grid-cols-2 gap-3 text-sm lg:min-w-56"><div className="space-y-1"><dt className="text-xs text-muted-foreground">Idiomas</dt><dd>{page.resource.languages.join(', ') || 'Não informado'}</dd></div><div className="space-y-1"><dt className="text-xs text-muted-foreground">Última atualização</dt><dd>{page.resource.updatedAt.split('-').reverse().join('/')}</dd></div></dl>
+            <p className="text-xs leading-relaxed text-muted-foreground lg:max-w-56">O conteúdo e as informações completas ficam no site de origem.</p>
             <div className="flex flex-wrap gap-2"><Button asChild><a href={page.resource.url} target="_blank" rel="noopener noreferrer">Abrir site<ArrowUpRight /></a></Button>{repository && <Button asChild variant="outline"><a href={`${repository}/edit/main/data/${page.resource.type}/${page.resource.slug}.json`}>Editar informação</a></Button>}</div>
             </aside>
             </div>
@@ -363,20 +362,20 @@ export function App({ path }: { path: string }) {
           </article>
         ) : (
           <PlatformTabsRoot enabled={creatorsPage || communitiesPage} value={communitiesPage ? communitySelection.platform : creatorPlatform} onChange={communitiesPage ? value=>changeCommunityLocation({...communitySelection,platform:value}) : changeCreatorPlatform}><section aria-label="Recursos" className="scroll-mt-24 space-y-5">
-            <div className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{page.title}</h1><SectionGuide section={guideSectionForGroup(creatorsPage || page.category?.id === 'youtube' ? 'creators' : page.category?.id)} dark={dark} /></div><div className="flex flex-wrap items-center gap-2">{communitiesPage && <CommunityFiltersDialog value={communitySelection} onChange={next=>changeCommunityLocation({...communitySelection,...next})} />}<SuggestResource type={creatorsPage && creatorPlatform === 'youtube' ? 'youtube' : page.category?.id} /></div></div><div className="flex items-start justify-between gap-3"><p className="text-sm text-muted-foreground">{communitiesPage ? 'Encontre pessoas e comunidades de tecnologia perto de você ou ao redor do mundo.' : 'Indicações organizadas para você explorar no próprio ritmo.'}</p></div></div>
+            <div className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{page.title}</h1><SectionGuide section={guideSectionForGroup(creatorsPage || page.category?.id === 'youtube' ? 'creators' : page.category?.id)} dark={dark} /></div><div className="flex flex-wrap items-center gap-2">{communitiesPage && <CommunityFiltersDialog value={communitySelection} onChange={next=>changeCommunityLocation({...communitySelection,...next})} />}<SuggestResource iconOnlyOnMobile type={creatorsPage && creatorPlatform === 'youtube' ? 'youtube' : page.category?.id} /></div></div><div className="flex items-start justify-between gap-3"><p className="text-sm text-muted-foreground">{communitiesPage ? 'Encontre pessoas e comunidades de tecnologia perto de você ou ao redor do mundo.' : 'Indicações organizadas para você explorar no próprio ritmo.'}</p></div></div>
             {creatorsPage && <CreatorTabs />}
             {communitiesPage && <CommunityTabs />}
             <PlatformTabPanel enabled={creatorsPage || communitiesPage} value={communitiesPage ? communitySelection.platform : creatorPlatform}><div className="outline-none focus-visible:outline-2 focus-visible:outline-ring">
             {page.category && studyTypes.has(page.category.id) ? <StudyListing category={page.category.id} items={filtered} title={page.title} query={searchQuery} onSearch={changeSearch} /> : <div className="rounded-lg border bg-card">
               <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-4">
                 <span aria-live="polite" className="text-xs text-muted-foreground">{listing.pages > 1 ? `${listing.start}–${listing.end} de ${filtered.length} itens` : `${filtered.length} ${filtered.length === 1 ? 'item na lista' : 'itens na lista'}`}</span>
-                <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+                <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 sm:w-auto">
                   {creatorsPage && <Select name="creatorContent" value={creatorContent} onValueChange={changeCreatorContent}>
-                    <SelectTrigger size="sm" aria-label="Categoria de conteúdo" className="h-8 w-40 min-w-0 shrink-0 text-xs sm:w-52"><SelectValue /></SelectTrigger>
+                    <SelectTrigger size="sm" aria-label="Categoria de conteúdo" className="h-8 w-36 min-w-0 shrink-0 text-sm sm:w-52"><SelectValue /></SelectTrigger>
                     <SelectContent><SelectItem value="all">Todas as categorias</SelectItem>{creatorCategories.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
                   </Select>}
                   {communitiesPage && <Select value={communitySelection.audience || 'all'} onValueChange={audience=>changeCommunityLocation({...communitySelection,audience})}>
-                    <SelectTrigger size="sm" aria-label="Público da comunidade" className="h-8 w-36 min-w-0 shrink-0 text-xs sm:w-44"><SelectValue /></SelectTrigger>
+                    <SelectTrigger size="sm" aria-label="Público da comunidade" className="h-8 w-36 min-w-0 shrink-0 text-sm sm:w-44"><SelectValue /></SelectTrigger>
                     <SelectContent><SelectItem value="all">Todos os públicos</SelectItem>{communityAudiences.map(item=><SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent>
                   </Select>}
                   <ResourceSearch value={searchQuery} onChange={changeSearch} />

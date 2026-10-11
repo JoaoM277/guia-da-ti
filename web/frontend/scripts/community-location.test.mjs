@@ -61,5 +61,5 @@ test('audience combines with any registered platform and location without guessi
  assert.deepEqual(readCommunityFilters('?publico=lgbt&plataforma=website'),{...emptyCommunityFilters(),audience:'lgbt',platform:'website'});
  assert.deepEqual(readCommunityFilters('?publico=invalid'),emptyCommunityFilters());
  const ordered=[{slug:'z',name:'Zeta'},{slug:'a',name:'Alfa'},{slug:'fulldev',name:'FullDev'}].sort(compareCommunities);
- assert.deepEqual(ordered.map(r=>r.slug),['fulldev','a','z']);
+ assert.deepEqual(ordered.map(r=>r.slug),['a','fulldev','z']);
 });

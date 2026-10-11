@@ -97,7 +97,7 @@ try {
   assert.ok(Math.max(...footerCenters) - Math.min(...footerCenters) < 2, JSON.stringify(footerCenters));
   assert.ok(await evaluate(`(()=>{const frame=document.querySelector('footer .site-frame'), bounds=frame.getBoundingClientRect(), online=frame.children[1].getBoundingClientRect();return Math.abs(online.x+online.width/2-(bounds.x+bounds.width/2))<2})()`));
   await hover(`document.querySelector('footer [aria-label="Mantenedores"] a')`);
-  await waitFor(`document.querySelector('[role="tooltip"]')?.textContent.includes('5 contribuições no Guia')`);
+  await waitFor(`document.querySelector('[role="tooltip"]')?.textContent.includes('5 contribuições nos repositórios do Guia')`);
   assert.equal(await evaluate(`document.querySelector('main h1').textContent`), 'Fórum do Guia da TI');
   assert.equal(await evaluate(`document.querySelector('main h1').getBoundingClientRect().height <= 1`), true);
   assert.equal(await evaluate(`document.querySelectorAll('main [aria-label="Categorias"], main [aria-label="Busca"], main [aria-label="Resultados"]').length`), 0);

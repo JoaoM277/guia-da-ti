@@ -99,7 +99,16 @@ public sealed class DiscussionsClient(IHttpClientFactory clients, IConfiguration
         item.GetProperty("number").GetInt32(), Text(item, "title"), Category(item.GetProperty("category")),
         Author(item), Text(item, "updatedAt"), item.GetProperty("comments").GetProperty("totalCount").GetInt32(),
         item.GetProperty("isAnswered").ValueKind == JsonValueKind.True, item.GetProperty("locked").GetBoolean(),
-        $"{RepositoryUrl}/{item.GetProperty("number").GetInt32()}", Preview(item), ResourceCategory(item));
+        $"{RepositoryUrl}/{item.GetProperty("number").GetInt32()}", Preview(item), ResourceCategory(item), ImageUrl(item));
+    private static string? ImageUrl(JsonElement item)
+    {
+        var match = Regex.Match(Text(item, "bodyText"), @"(?:\*\*)?Imagem:\**\s*(\S+)", RegexOptions.IgnoreCase);
+        if (!match.Success) return null;
+        var value = match.Groups[1].Value.TrimEnd('.', ',', ')');
+        if (Regex.IsMatch(value, @"^/api/contributions/images/[a-f0-9]{32}\.(png|jpg|webp)$")) return value;
+        return Uri.TryCreate(value, UriKind.Absolute, out var image) && image.Scheme == Uri.UriSchemeHttps
+            && image.IsDefaultPort && string.IsNullOrEmpty(image.UserInfo) && image.Host.Contains('.') ? image.AbsoluteUri : null;
+    }
     private static string? ResourceCategory(JsonElement item) {
         var match = Regex.Match(Text(item, "bodyText"), @"Categoria do guia:\**\s*([a-z0-9-]+)", RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value : null;
@@ -195,7 +204,7 @@ public sealed class DiscussionsUnavailableException : Exception;
 public record DiscussionCategory(string Id, string Name);
 public record DiscussionPage(bool HasNextPage, string? EndCursor);
 public record DiscussionSummary(int Number, string Title, DiscussionCategory Category, string Author,
-    string UpdatedAt, int CommentCount, bool IsAnswered, bool Locked, string Url, string Preview = "", string? ResourceCategory = null);
+    string UpdatedAt, int CommentCount, bool IsAnswered, bool Locked, string Url, string Preview = "", string? ResourceCategory = null, string? ImageUrl = null);
 public record DiscussionList(string Status, string RepositoryUrl, DiscussionCategory[] Categories, DiscussionSummary[] Items, DiscussionPage PageInfo, int? TotalCount = null);
 public record DiscussionComment(string Id, string Author, string? AvatarUrl, string Body, string CreatedAt, bool IsAnswer, bool IsDeleted, DiscussionComment[] Replies, int ReplyCount);
 public record DiscussionThread(string Status, DiscussionSummary Discussion, string Body, DiscussionComment[] Comments, DiscussionPage PageInfo);

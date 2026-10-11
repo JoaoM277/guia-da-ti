@@ -175,7 +175,7 @@ export async function checkDiscussions({ send, evaluate, click, waitFor, navigat
   assert.equal(await evaluate(`window.testLoginPopup.closed`), true);
   assert.equal(await evaluate(`!!document.querySelector('header img[alt="Foto de ana"]')`), true);
   assert.equal(await evaluate(`!![...document.querySelectorAll('header button')].find(e=>e.textContent.trim()==='Entrar com GitHub')`), false);
-  await waitFor(`!!document.querySelector('main textarea')`);
+  await waitFor(`!!document.querySelector('[role="dialog"] textarea')`);
   await click(button('Cancelar'));
   await evaluate(`window.open = window.realPopupOpen`);
   await click(`document.querySelector('header [aria-label="Menu do usuário ana"]')`);
@@ -187,7 +187,7 @@ export async function checkDiscussions({ send, evaluate, click, waitFor, navigat
   await click(button('Novo tópico'));
   await click(`document.querySelector('input[id$="-title"]')`);
   await send('Input.insertText', { text: 'Um novo tópico' });
-  await click(`document.querySelector('[aria-label="Categoria do novo tópico"]')`);
+  await click(`document.querySelector('[aria-label="Categoria"]')`);
   await click(`[...document.querySelectorAll('[role="option"]')].find(e=>e.textContent.trim()==='Dúvidas')`);
   await click(`document.querySelector('textarea')`);
   await send('Input.insertText', { text: 'Texto do tópico' });

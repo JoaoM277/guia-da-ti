@@ -65,7 +65,7 @@ export async function checkStudyCuration({
     }
     assert.ok(
       cards.every(
-        (c) => c.text.includes("Sem nota") && c.text.includes("0 hypes"),
+        (c) => c.text.includes("Sem avaliações") && c.text.includes("0 hypes"),
       ),
       "Curation does not seed fictional popularity",
     );

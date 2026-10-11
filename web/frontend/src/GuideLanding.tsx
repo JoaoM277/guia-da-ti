@@ -53,9 +53,9 @@ export function GuideLanding({ dark }: { dark: boolean }) {
       </section>
       <section aria-labelledby="apoiadores-heading" className="space-y-5">
         <header className="max-w-2xl space-y-2">
-          <p className="text-xs font-medium uppercase tracking-widest text-primary">Apoio ao projeto</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-primary">A comunidade</p>
           <h2 id="apoiadores-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">Empresas apoiadoras</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">Empresas que apoiam a continuidade do Guia da TI.</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">Empresas que ajudam a manter o Guia da TI.</p>
         </header>
         <Community area="supporters" embedded />
       </section>
@@ -66,13 +66,15 @@ export function GuideLanding({ dark }: { dark: boolean }) {
         <div className="max-w-2xl space-y-2">
           <h2 id="fale-com-o-guia" className="text-2xl font-semibold tracking-tight">Fale com a gente</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">Peça a remoção de um conteúdo, relate um bug ou converse sobre uma parceria.</p>
-          <div className="flex flex-col items-start gap-2 pt-1">
-            <a href="mailto:devlucaspedro@gmail.com" className="text-sm font-medium text-foreground underline underline-offset-4 hover:text-primary">devlucaspedro@gmail.com</a>
-            <a href="/divulgue" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary">Divulgue um projeto ou conteúdo no Guia<ArrowUpRight aria-hidden="true" className="size-4 shrink-0" /></a>
-          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1"><a href="mailto:devlucaspedro@gmail.com" className="text-sm font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary">E-mail: devlucaspedro@gmail.com</a></div>
         </div>
         <Button asChild className="shrink-0"><a href="mailto:devlucaspedro@gmail.com"><Mail />Enviar e-mail</a></Button>
       </div>
+    </section>
+
+    <section aria-labelledby="divulgue-no-guia" className="flex flex-col gap-4 rounded-2xl border bg-card p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+      <div className="space-y-2"><h2 id="divulgue-no-guia" className="text-xl font-semibold tracking-tight">Divulgue um projeto ou conteúdo no Guia</h2><p className="text-sm leading-relaxed text-muted-foreground">Conheça os formatos disponíveis para anúncios e conteúdos patrocinados.</p></div>
+      <Button asChild variant="outline" className="shrink-0"><a href="/divulgue">Conhecer os espaços<ArrowUpRight /></a></Button>
     </section>
 
   </article>;

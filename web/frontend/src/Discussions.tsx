@@ -3,7 +3,7 @@ import { Advertisement } from './Advertisement';
 import { PublicationActions } from './PublicationActions';
 import { ApproveContribution, Composer } from './Participation';
 import { DiscussionSkeleton } from './Loading';
-import { ArrowLeft, ArrowUpRight, ChevronDown, MessageSquareText, Search } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ChevronDown, MessageSquareText, Plus, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { LoadingImage } from './LoadingImage';
 
 type Category = { id: string; name: string };
 type PageInfo = { hasNextPage: boolean; endCursor: string | null };
-type Discussion = { number: number; title: string; preview: string; category: Category; resourceCategory?: string | null; author: string; updatedAt: string; commentCount: number; isAnswered: boolean; locked: boolean; url: string };
+type Discussion = { number: number; title: string; preview: string; imageUrl?: string | null; category: Category; resourceCategory?: string | null; author: string; updatedAt: string; commentCount: number; isAnswered: boolean; locked: boolean; url: string };
 type Comment = { id: string; author: string; avatarUrl: string | null; body: string; createdAt: string; isAnswer: boolean; isDeleted: boolean; replies: Comment[]; replyCount: number };
 type DiscussionList = { status: 'ready'; repositoryUrl: string; categories: Category[]; items: Discussion[]; pageInfo: PageInfo; totalCount?: number | null };
 type Thread = { status: 'ready'; discussion: Discussion; body: string; comments: Comment[]; pageInfo: PageInfo };
@@ -154,18 +154,19 @@ function DiscussionFeed() {
   }, [draft, query, category]);
   const advertisementAfter = ready ? Math.min(3, Math.max(1, ready.items.length - 1)) : 0;
   return <div className="space-y-3">
-    <div aria-label="Ferramentas do fórum" className="flex flex-wrap items-start gap-2">
-      <form role="search" aria-label="Buscar conversas" className="flex min-w-0 basis-full gap-1 sm:basis-0 sm:flex-1" onSubmit={event => { event.preventDefault(); applyFilters(draft.trim()); }}>
+    <div aria-label="Ferramentas do fórum" className="flex min-w-0 flex-nowrap items-center gap-2">
+      <form role="search" aria-label="Buscar conversas" className="flex min-w-0 flex-1 gap-1" onSubmit={event => { event.preventDefault(); applyFilters(draft.trim()); }}>
         <label htmlFor="discussion-search" className="sr-only">Buscar tópicos</label>
-        <div className="relative min-w-0 flex-1"><Search aria-hidden="true" className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" /><Input id="discussion-search" type="search" maxLength={200} placeholder="Buscar tópicos…" value={draft} onChange={event => setDraft(event.target.value)} className="h-9 pl-9" /></div>
+        <div className="relative min-w-0 flex-1"><Search aria-hidden="true" className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" /><Input id="discussion-search" type="search" maxLength={200} placeholder="Buscar" value={draft} onChange={event => setDraft(event.target.value)} className="h-9 pl-9 text-sm font-normal" /></div>
       </form>
-      {(ready || categories.length > 0) && <Select value={category} onValueChange={value => applyFilters(query, value)}><SelectTrigger aria-label="Categoria das conversas" className="h-9 min-w-0 flex-1 sm:w-44 sm:flex-none"><SelectValue placeholder="Todas as categorias" /></SelectTrigger><SelectContent><SelectItem value="all">Todas as categorias</SelectItem>{categories.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select>}
-      {ready && <Composer compact categories={categories} githubUrl={`${ready.repositoryUrl}/new`} label="Novo tópico" onPublished={number => { window.location.assign(`/?conversa=${number}`); }} />}
+      {(ready || categories.length > 0) && <Select value={category === 'all' ? '' : category} onValueChange={value => applyFilters(query, value)}><SelectTrigger aria-label="Categoria das conversas" className="h-9 w-[9.5rem] min-w-0 shrink-0 font-normal sm:w-44"><SelectValue placeholder="Categorias" /></SelectTrigger><SelectContent><SelectItem value="all">Todas as categorias</SelectItem>{categories.map(item => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select>}
+      {ready && <Composer compact mobileIcon={<Plus aria-hidden="true" className="size-5" strokeWidth={2} />} categories={categories} githubUrl={`${ready.repositoryUrl}/new`} label="Novo tópico" onPublished={number => { window.location.assign(`/?conversa=${number}`); }} />}
     </div>
     {query && <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground"><p role="status">{ready ? `${ready.totalCount ?? ready.items.length} ${(ready.totalCount ?? ready.items.length) === 1 ? 'conversa encontrada' : 'conversas encontradas'} para “${query}”.` : 'Buscando…'}</p><Button type="button" variant="ghost" size="sm" onClick={() => { setDraft(''); applyFilters(''); }}>Limpar busca</Button></div>}
     {!ready ? <RequestState error={error} unconfigured={result?.status === 'unconfigured'} retry={retry} /> : <>
       {ready.items.length ? <ul className="divide-y border-y" aria-label="Conversas">{ready.items.map((discussion, index) => <Fragment key={discussion.number}><li>
         <article data-motion className="relative min-w-0 cursor-pointer space-y-2 px-1 py-4 transition-colors hover:bg-muted/30 focus-within:bg-muted/30">
+          {discussion.imageUrl && <LoadingImage src={discussion.imageUrl} alt={`Imagem de ${discussion.title}`} loading="lazy" className="mb-3 aspect-[16/7] w-full overflow-hidden rounded-lg bg-muted sm:aspect-[16/5]" imageClassName="object-cover" />}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"><span className="font-medium text-foreground">{discussion.category.name}</span>{discussion.resourceCategory && <Badge variant="outline" className="text-[10px]">{categories.find(category => category.id === discussion.resourceCategory)?.name || discussion.resourceCategory}</Badge>}<span aria-hidden="true">·</span><span>{discussion.author}</span><span aria-hidden="true">·</span><DateLabel value={discussion.updatedAt} />{discussion.isAnswered && <Badge variant="secondary" className="text-[10px]">Respondida</Badge>}{discussion.locked && <Badge variant="outline" className="text-[10px]">Encerrada</Badge>}</div>
           <h2 className="text-base font-semibold leading-snug sm:text-lg"><a className="rounded-sm hover:text-primary after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-ring [overflow-wrap:anywhere]" href={discussionUrl(discussion.number)}>{discussion.title}</a></h2>
           {discussion.preview && <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">{discussion.preview}</p>}

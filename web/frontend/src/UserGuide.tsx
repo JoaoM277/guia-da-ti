@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import type { HyperframesPlayer } from '@hyperframes/player';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowUpRight, BookOpen, Briefcase, CalendarDays, CircleHelp, Code, Compass, Github, Lightbulb, MessageSquare, Newspaper, Pause, Play, Users, Video, HeartHandshake, X } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Briefcase, CalendarDays, CircleHelp, Code, Compass, Github, Lightbulb, MessageSquare, Megaphone, Newspaper, Pause, Play, Users, Video, HeartHandshake, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { aboutGuideSteps, githubGuideSteps, guideAnimationSection, guideSteps, sectionWalkthrough, type GuideStep, type GuideStepId } from './guide-steps';
 import runtimeUrl from '../node_modules/@hyperframes/core/dist/hyperframe.runtime.iife.js?url';
 import { GuideAttention } from './GuideAttention';
 
-const stepIcons = { explore: Compass, communities: Users, creators: Video, study: BookOpen, inform: Newspaper, networking: CalendarDays, practice: Code, career: Briefcase, forum: MessageSquare, contribute: HeartHandshake, about: Compass, transparency: Github, 'github-account': Github, 'github-login': Github, 'github-participate': MessageSquare };
+const stepIcons = { explore: Compass, communities: Users, creators: Video, study: BookOpen, inform: Newspaper, networking: CalendarDays, practice: Code, career: Briefcase, forum: MessageSquare, contribute: HeartHandshake, about: Compass, transparency: Github, advertising: Megaphone, 'github-account': Github, 'github-login': Github, 'github-participate': MessageSquare };
 
-function GuideAnimation({ id, phase, dark, reduced, scroller }: { id: GuideStepId; phase?: GuideStep['phase']; dark: boolean; reduced: boolean; scroller?: React.RefObject<HTMLDivElement | null> }) {
+function GuideAnimation({ id, phase, view, dark, reduced, scroller }: { id: GuideStepId; phase?: GuideStep['phase']; view?: string; dark: boolean; reduced: boolean; scroller?: React.RefObject<HTMLDivElement | null> }) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<HyperframesPlayer | null>(null);
   const [ready, setReady] = useState(false);
@@ -38,7 +38,7 @@ function GuideAnimation({ id, phase, dark, reduced, scroller }: { id: GuideStepI
         element.setAttribute('height', '450');
         element.setAttribute('muted', '');
         element.setAttribute('loop', '');
-        element.setAttribute('src', `/guia-animacoes/index.html?secao=${guideAnimationSection(id)}&tema=${dark ? 'escuro' : 'claro'}${phase ? `&etapa=${phase}` : ''}`);
+        element.setAttribute('src', `/guia-animacoes/index.html?secao=${guideAnimationSection(id)}&tema=${dark ? 'escuro' : 'claro'}${phase ? `&etapa=${phase}` : ''}${view ? `&posicao=${view}` : ''}`);
         element.className = 'absolute inset-0 block h-full w-full';
         element.setAttribute('aria-hidden', 'true');
         element.addEventListener('ready', () => {
@@ -87,6 +87,18 @@ function GuideAnimation({ id, phase, dark, reduced, scroller }: { id: GuideStepI
     {!ready && <span role="status" className="absolute bottom-3 left-4 text-xs text-muted-foreground">{failed ? 'A demonstração não carregou. As instruções estão abaixo.' : 'Carregando demonstração…'}</span>}
     {ready && !reduced && <Button size="icon-sm" variant="secondary" className="absolute right-3 bottom-3 border" aria-label={paused ? 'Reproduzir demonstração' : 'Pausar demonstração'} onClick={() => setPaused(value => !value)}>{paused ? <Play /> : <Pause />}</Button>}
   </div>;
+}
+
+export function AdvertisingHyperframe({ placement, dark = false }: { placement: string; dark?: boolean }) {
+  const [reduced, setReduced] = useState(true);
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReduced(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+  return <GuideAnimation id="advertising" view={placement} dark={dark} reduced={reduced} />;
 }
 
 function GuideTimeline({ dark, steps = guideSteps, embedded = false }: { dark: boolean; steps?: readonly GuideStep[]; embedded?: boolean }) {
@@ -144,7 +156,7 @@ function GuideStepLink({ step, ...props }: { step: GuideStep } & React.Component
 
 function GuideDialogContent({ dark, steps, title, description }: { dark: boolean; steps: readonly GuideStep[]; title: string; description: string }) {
   return <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
-    <DialogHeader className="shrink-0 border-b px-5 py-6 pr-12 text-left sm:px-9">
+    <DialogHeader className="mx-0 mt-0 shrink-0 border-b px-5 py-6 pr-12 text-left sm:px-9">
       <div className="mb-2 flex items-center gap-2 text-xs font-medium text-primary"><Compass className="size-4" />PASSO A PASSO</div>
       <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</DialogTitle>
       <DialogDescription className="mt-2 text-sm">{description}</DialogDescription>
@@ -193,12 +205,13 @@ export function UserGuide({ dark: _dark }: { dark: boolean }) {
     try { localStorage.setItem('guia:usage-tip:v1', 'dismissed'); } catch { /* Closing still works for this page. */ }
   }
   if (dismissed) return null;
-  return <aside aria-label="Dicas para usar o Guia" className="guide-announcement shrink-0 border-y border-primary/15 bg-accent/60">
-      <div className="site-frame mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
+  return <aside aria-label="Dicas para usar o Guia" className="guide-announcement relative shrink-0 border-y border-primary/15 bg-accent/60">
+      <div className="site-frame mx-auto grid max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-3 sm:flex sm:flex-nowrap sm:px-6">
         <CircleHelp aria-hidden="true" className="size-5 shrink-0 text-primary" />
-        <p className="min-w-0 flex-1 text-sm"><span className="font-medium">Novo por aqui?</span>{' '}<span className="text-muted-foreground">Veja as dicas para usar o Guia.</span></p>
-        <Button asChild variant="outline" className="order-3 ml-8 sm:order-none sm:ml-auto"><a href="/sobre">Como usar o Guia<ArrowUpRight /></a></Button>
-        <Button variant="ghost" size="icon" className="ml-auto shrink-0 sm:ml-0" aria-label="Fechar barra de dicas" title="Não mostrar novamente neste navegador" onClick={dismiss}><X /></Button>
+        <p className="min-w-0 text-sm sm:flex-1"><span className="font-medium">Novo por aqui?</span>{' '}<span className="text-muted-foreground">Veja as dicas para usar o Guia.</span><span aria-hidden="true" className="ml-2 inline-flex items-center gap-1 whitespace-nowrap text-primary underline underline-offset-4 sm:hidden">Como usar o Guia<ArrowUpRight className="size-4" /></span></p>
+        <a href="/sobre" aria-label="Abrir dicas para usar o Guia" className="absolute inset-0 z-[1] sm:hidden" />
+        <Button asChild variant="outline" className="hidden sm:order-none sm:ml-auto sm:inline-flex"><a href="/sobre">Como usar o Guia<ArrowUpRight /></a></Button>
+        <Button variant="ghost" size="icon" className="relative z-10 col-start-3 row-start-1 shrink-0 sm:order-3 sm:ml-0" aria-label="Fechar barra de dicas" title="Não mostrar novamente neste navegador" onClick={dismiss}><X /></Button>
       </div>
     </aside>;
 }

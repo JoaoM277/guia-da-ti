@@ -2,15 +2,16 @@ import { BookOpen, HeartHandshake, Megaphone, MessageSquareText, MousePointerCli
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Advertisement } from './Advertisement';
+import { AdvertisingHyperframe } from './UserGuide';
 
 const placements = [
-  { icon: Megaphone, title: 'Banner no topo do site', location: 'Acima do menu principal', description: 'O banner aparece acima do menu em todas as páginas. Use uma arte panorâmica para divulgar a campanha.' },
-  { icon: MessageSquareText, title: 'Entre os tópicos do fórum', location: 'Início', description: 'Há um espaço por página. Com quatro ou mais tópicos, ele aparece depois do terceiro. Com menos, fica antes da lista.' },
-  { icon: Users, title: 'Dentro de uma conversa', location: 'Tópicos do fórum', description: 'Depois do conteúdo do tópico e antes do campo para comentar. O anúncio fica separado da conversa e das respostas.' },
-  { icon: BookOpen, title: 'Nas discussões de Estudar', location: 'Itens com discussão disponível', description: 'Na conversa vinculada a plataformas de cursos, faculdades, bootcamps, roadmaps, livros e certificações. O espaço aparece antes dos comentários.' },
-];
+  { id: 'site-top-banner', icon: Megaphone, title: 'Banner no topo do site', location: 'Acima do menu principal', description: 'O banner aparece acima do menu em todas as páginas. Use uma arte panorâmica para divulgar a campanha.' },
+  { id: 'forum-feed', icon: MessageSquareText, title: 'Entre os tópicos do fórum', location: 'Início', description: 'Há um espaço por página. Com quatro ou mais tópicos, ele aparece depois do terceiro. Com menos, fica antes da lista.' },
+  { id: 'forum-topic', icon: Users, title: 'Dentro de uma conversa', location: 'Tópicos do fórum', description: 'Depois do conteúdo do tópico e antes do campo para comentar. O anúncio fica separado da conversa e das respostas.' },
+  { id: 'study-topic', icon: BookOpen, title: 'Nas discussões de Estudar', location: 'Itens com discussão disponível', description: 'Na conversa vinculada a plataformas de cursos, faculdades, bootcamps, roadmaps, livros e certificações. O espaço aparece antes dos comentários.' },
+ ] as const;
 
-export function Companies() {
+export function Companies({ dark }: { dark: boolean }) {
   return <article className="mx-auto w-full max-w-4xl space-y-10">
     <header data-motion className="space-y-5 rounded-2xl border bg-card p-6 sm:p-8">
       <Badge variant="secondary"><Megaphone className="size-3.5" aria-hidden="true" />Para organizações e pessoas</Badge>
@@ -28,11 +29,16 @@ export function Companies() {
 
     <section aria-labelledby="companies-placements" className="space-y-5">
       <div className="space-y-2"><h2 id="companies-placements" className="text-2xl font-semibold tracking-tight">Onde divulgar</h2><p className="text-sm leading-relaxed text-muted-foreground">Conheça os espaços disponíveis para anúncios e conteúdos patrocinados.</p></div>
-      <ol className="space-y-3">
-        <li className="flex gap-4 rounded-xl border bg-card p-5"><span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">1</span><div className="min-w-0 space-y-2"><Badge variant="outline"><BookOpen className="size-3" aria-hidden="true" />Listas do Guia</Badge><h3 className="font-semibold">Conteúdo patrocinado</h3><p className="text-sm leading-relaxed text-muted-foreground">Destaque um criador, recurso de estudo, iniciativa de networking ou comunidade no início da lista correspondente. A indicação aparece identificada como patrocinada.</p></div></li>
-        {placements.map((placement, index) => <li key={placement.title} data-motion className="flex gap-4 rounded-xl border bg-card p-5"><span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">{index + 2}</span><div className="min-w-0 space-y-2"><Badge variant="outline"><placement.icon className="size-3" aria-hidden="true" />{placement.location}</Badge><h3 className="font-semibold">{placement.title}</h3><p className="text-sm leading-relaxed text-muted-foreground">{placement.description}</p></div></li>)}
-      </ol>
-      <div className="space-y-4 rounded-xl border border-dashed p-4 sm:p-5"><div><p className="mb-3 text-xs font-medium text-muted-foreground">Prévia do banner no topo</p><Advertisement placement="site-top-banner" preview /></div><div><p className="mb-3 text-xs font-medium text-muted-foreground">Prévia do espaço no fórum</p><Advertisement preview /></div></div>
+      <div className="space-y-4">
+        <article data-motion className="space-y-4 rounded-xl border bg-card p-4 sm:p-5">
+          <div className="space-y-2"><Badge variant="outline"><BookOpen className="size-3" aria-hidden="true" />Listas do Guia</Badge><h3 className="font-semibold">Conteúdo patrocinado</h3><p className="text-sm leading-relaxed text-muted-foreground">Destaque um criador, recurso de estudo, iniciativa de networking ou comunidade no início da lista correspondente. A indicação aparece identificada como patrocinada.</p></div>
+          <div className="grid items-start gap-4 lg:grid-cols-2"><div className="rounded-lg border bg-background p-4"><p className="mb-2 text-xs font-medium text-muted-foreground">Prévia na lista</p><div className="rounded-lg border bg-card p-4"><div className="mb-3 flex items-center gap-2"><Badge variant="secondary">Patrocinado</Badge><span className="text-xs text-muted-foreground">Exemplo</span></div><p className="font-semibold">Plataforma para aprender tecnologia</p><p className="mt-1 text-sm text-muted-foreground">Cursos e trilhas para seguir no seu ritmo.</p></div></div><AdvertisingHyperframe placement="sponsored-list" dark={dark} /></div>
+        </article>
+        {placements.map((placement, index) => <article key={placement.id} data-motion className="space-y-4 rounded-xl border bg-card p-4 sm:p-5">
+          <div className="space-y-2"><Badge variant="outline"><placement.icon className="size-3" aria-hidden="true" />{placement.location}</Badge><h3 className="font-semibold">{placement.title}</h3><p className="text-sm leading-relaxed text-muted-foreground">{placement.description}</p></div>
+          <div className="grid items-start gap-4 lg:grid-cols-2"><div className="rounded-lg border bg-background p-4"><p className="mb-2 text-xs font-medium text-muted-foreground">Prévia</p><Advertisement placement={placement.id} preview /></div><AdvertisingHyperframe placement={placement.id} dark={dark} /></div>
+        </article>)}
+      </div>
       <p className="text-sm leading-relaxed text-muted-foreground">Os anúncios aparecem no topo do site ou no fórum. O patrocínio destaca um item em uma lista relacionada.</p>
     </section>
 

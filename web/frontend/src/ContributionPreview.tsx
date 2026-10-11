@@ -8,8 +8,7 @@ export function ContributionPreview({ name, summary, description, category, area
 }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [image]);
-  return <aside aria-label="Prévia da sugestão" className="min-w-0 md:sticky md:top-0">
-    <p className="mb-3 text-sm font-medium">Prévia da sugestão</p>
+  return <aside aria-label="Como a sugestão aparecerá no Guia" className="min-w-0 md:sticky md:top-0">
     <Card className="gap-0 overflow-hidden py-0">
       <div className="flex aspect-video items-center justify-center bg-muted">{image && !failed ? <img src={image} alt="Imagem da sugestão" className="h-full w-full object-cover" onError={() => setFailed(true)} /> : <div className="grid justify-items-center gap-2 text-muted-foreground"><ImageIcon aria-hidden="true" /><span className="text-xs">{failed ? 'Não foi possível carregar a imagem' : 'Adicione uma imagem'}</span></div>}</div>
       <CardHeader className="gap-3 p-4">{category && <Badge variant="secondary" className="w-fit">{category}</Badge>}<CardTitle className="break-words">{name || 'Nome do recurso'}</CardTitle><p className="break-words text-sm text-muted-foreground">{summary || 'O resumo aparece aqui'}</p></CardHeader>

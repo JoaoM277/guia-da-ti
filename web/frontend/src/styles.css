@@ -149,7 +149,7 @@ header a[aria-current], footer a[aria-current] { background: var(--accent); colo
   align-items: center;
   justify-content: center;
   height: 36px;
-  padding: 8px;
+  padding: 0 8px;
   border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 0.875rem;
