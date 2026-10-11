@@ -72,10 +72,5 @@ export function GuideLanding({ dark }: { dark: boolean }) {
       </div>
     </section>
 
-    <section aria-labelledby="divulgue-no-guia" className="flex flex-col gap-4 rounded-2xl border bg-card p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-      <div className="space-y-2"><h2 id="divulgue-no-guia" className="text-xl font-semibold tracking-tight">Divulgue um projeto ou conteúdo no Guia</h2><p className="text-sm leading-relaxed text-muted-foreground">Conheça os formatos disponíveis para anúncios e conteúdos patrocinados.</p></div>
-      <Button asChild variant="outline" className="shrink-0"><a href="/divulgue">Conhecer os espaços<ArrowUpRight /></a></Button>
-    </section>
-
   </article>;
 }
