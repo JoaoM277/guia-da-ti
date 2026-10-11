@@ -19,8 +19,9 @@ public sealed class CatalogProposalWriter(IHttpClientFactory clients, IConfigura
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         var upstream = await Read(client, $"repos/{repository}", cancellation);
         if (upstream.GetProperty("private").GetBoolean()) throw new ContributionRejectedException("O catálogo precisa estar em um repositório público.");
-        var baseBranch = upstream.GetProperty("default_branch").GetString()!;
-        var reference = await Read(client, $"repos/{repository}/git/ref/heads/{Uri.EscapeDataString(baseBranch)}", cancellation);
+        var defaultBranch = upstream.GetProperty("default_branch").GetString()!;
+        var baseBranch = CatalogTargetBranch.Resolve(configuration, defaultBranch);
+        var reference = await Read(client, $"repos/{repository}/git/ref/heads/{CatalogTargetBranch.ApiRef(baseBranch)}", cancellation);
         var sha = reference.GetProperty("object").GetProperty("sha").GetString();
         var target = repository;
         var headOwner = repository.Split('/')[0];

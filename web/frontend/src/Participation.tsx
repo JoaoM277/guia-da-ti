@@ -241,7 +241,7 @@ export function Composer({ number, replyToId, categories, onPublished, label = '
 
 const typeNames: Record<string, string> = { courses: 'Cursos', platforms: 'Plataformas de cursos', universities: 'Faculdades', bootcamps: 'Bootcamps', roadmaps: 'Roadmaps', books: 'Livros', certifications: 'Certificações', news: 'Notícias', blogs: 'Blogs', newsletters: 'Newsletters', podcasts: 'Podcasts', youtube: 'YouTube', creators: 'Criadores', articles: 'Artigos', tutorials: 'Tutoriais', studies: 'Estudos', 'case-studies': 'Estudos de caso', reports: 'Relatórios', communities: 'Comunidades', events: 'Eventos', meetups: 'Meetups', conferences: 'Conferências', hackathons: 'Hackathons', tools: 'Ferramentas', 'open-source': 'Projetos open source', challenges: 'Desafios', labs: 'Laboratórios', jobs: 'Sites de vagas', scholarships: 'Bolsas de estudo', mentoring: 'Programas de mentoria', volunteering: 'Programas de voluntariado' };
 
-export function ResourceContribution({initialCategory = ""}: {initialCategory?: string}) {
+export function ResourceContribution({initialCategory = "", onSubmitted}: {initialCategory?: string; onSubmitted?: () => void}) {
   const notify = useContributionToast();
   const session = useContext(SessionContext)?.session;
   const [busy, setBusy] = useState(false);
@@ -322,6 +322,7 @@ export function ResourceContribution({initialCategory = ""}: {initialCategory?: 
       setCommunityPlatformIds([]); setCommunityModality(''); setCreatorCategoryIds([]);
       setCommunityAudience(''); setCommunityUrls({});
       setUniversityType(''); setImageUrl(''); setImageFile(null); setMemberCount(''); setMoreThan(false);
+      onSubmitted?.();
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível enviar a contribuição.'); }
     finally { setBusy(false); }
   }

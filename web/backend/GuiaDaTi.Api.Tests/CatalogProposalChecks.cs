@@ -91,7 +91,7 @@ static class CatalogProposalChecks
                 var service = new ContributionService(new ProposalFactory(handler), settings, images);
                 await service.Submit("user-token", new("creators", "Perfil com imagem", "https://example.org/profile", "Resumo do perfil com imagem", "Descrição do perfil com imagem", ["geral"], [], ["pt-BR"], CreatorCategories:["career"], ImageUploadId:id), catalog, default);
                 Check(handler.ImageBytes!.SequenceEqual(png) && handler.ImageBranch == handler.ResourceBranch, "Image and resource published in same review branch");
-                Check(handler.UserTokenOnly && handler.Resource.GetProperty("imageUrl").GetString() == $"https://raw.githubusercontent.com/example/catalog/main/assets/images/perfil-com-imagem-{id}", "Image uses visitor credential and canonical public URL");
+                Check(handler.UserTokenOnly && handler.Resource.GetProperty("imageUrl").GetString() == $"https://raw.githubusercontent.com/example/catalog/catalog-review/assets/images/perfil-com-imagem-{id}", "Image uses visitor credential and canonical public URL");
                 Check(!handler.Resource.TryGetProperty("imageUploadId", out _), "Pending image ID stays out of public catalog");
             }
             using (var handler = new ProposalGitHub()) {

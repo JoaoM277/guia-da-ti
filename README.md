@@ -57,6 +57,7 @@ O workflow não faz deploy na VPS. Para executar o artefato, configure `CATALOG_
 - `VITE_DATA_REPOSITORY`: padrão `https://github.com/guia-da-ti/guia-da-ti-dados`.
 - `DISCUSSIONS_REPOSITORY`: repositório público das conversas, padrão `guia-da-ti/guia-da-ti-dados` (somente no backend).
 - `DISCUSSIONS_TOKEN`: credencial de leitura da API GraphQL do GitHub (somente no backend).
+- `CATALOG_TARGET_BRANCH`: branch que recebe PRs de contribuições, padrão `catalog-review`. Deve existir e ser diferente da branch principal.
 
 Frontend e backend devem usar o mesmo snapshot. Nunca coloque segredos em variáveis `VITE_*`.
 

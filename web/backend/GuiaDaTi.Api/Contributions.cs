@@ -77,20 +77,21 @@ public sealed class ContributionService(IHttpClientFactory clients, IConfigurati
         repoResponse.EnsureSuccessStatusCode();
         using var repoJson = JsonDocument.Parse(await repoResponse.Content.ReadAsStringAsync(cancellation));
         var defaultBranch = repoJson.RootElement.GetProperty("default_branch").GetString() ?? "main";
+        var targetBranch = CatalogTargetBranch.Resolve(configuration, defaultBranch);
         var branch = $"contributions/discussion-{number}";
-        var refResponse = await client.GetAsync(new Uri(api, $"repos/{owner}/{name}/git/ref/heads/{Uri.EscapeDataString(defaultBranch).Replace("%2F", "/")}"), cancellation);
+        var refResponse = await client.GetAsync(new Uri(api, $"repos/{owner}/{name}/git/ref/heads/{CatalogTargetBranch.ApiRef(targetBranch)}"), cancellation);
         refResponse.EnsureSuccessStatusCode();
         using var refJson = JsonDocument.Parse(await refResponse.Content.ReadAsStringAsync(cancellation));
         var sha = refJson.RootElement.GetProperty("object").GetProperty("sha").GetString();
         using var createBranch = await client.PostAsJsonAsync(new Uri(api, $"repos/{owner}/{name}/git/refs"), new { @ref = $"refs/heads/{branch}", sha }, cancellation);
         if (!createBranch.IsSuccessStatusCode) throw new ContributionRejectedException("Não foi possível criar um branch de revisão. Verifique se esta sugestão já foi aprovada.");
-        if (images is not null) resource = await images.Publish(client, repository, repository, branch, defaultBranch, resource, cancellation);
+        if (images is not null) resource = await images.Publish(client, repository, repository, branch, targetBranch, resource, cancellation);
         var path = $"data/{resource.Type}/{resource.Slug}.json";
         var content = Convert.ToBase64String(Encoding.UTF8.GetBytes(CatalogJson.Serialize(resource)));
         using var putFile = await client.PutAsJsonAsync(new Uri(api, $"repos/{owner}/{name}/contents/{path}"), new { message = $"catalog: add {resource.Slug}", content, branch }, cancellation);
         if (!putFile.IsSuccessStatusCode) throw new ContributionRejectedException("O arquivo do recurso não pôde ser criado. Confira se já existe no catálogo.");
         using var pull = await client.PostAsJsonAsync(new Uri(api, $"repos/{owner}/{name}/pulls"), new {
-            title = $"Adicionar {resource.Name} ao catálogo", head = branch, @base = defaultBranch,
+            title = $"Adicionar {resource.Name} ao catálogo", head = branch, @base = targetBranch,
             body = $"Cadastro revisado a partir da [conversa #{number}]({discussion.GetProperty("url").GetString()}).\n\nOs dados foram enviados originalmente no fórum e estão prontos para validação do catálogo."
         }, cancellation);
         if (!pull.IsSuccessStatusCode) throw new ContributionRejectedException("O cadastro foi preparado, mas o Pull Request não pôde ser aberto. Confira os branches no GitHub.");

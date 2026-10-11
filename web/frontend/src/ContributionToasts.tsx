@@ -14,7 +14,7 @@ export function ContributionToasts({ children }: { children: ReactNode }) {
     if (seen.current.has(notice.id)) return;
     seen.current.add(notice.id);
     if (seen.current.size > 256) seen.current.delete(seen.current.values().next().value!);
-    setNotices(current => [...current.slice(-2), notice]);
+    setNotices(current => [...current, notice].slice(-3));
   }, []);
   useEffect(() => {
     const controller = new AbortController();
@@ -41,15 +41,15 @@ export function ContributionToasts({ children }: { children: ReactNode }) {
   }, [notify]);
   return <NoticeContext.Provider value={notify}><Toast.Provider duration={7000} swipeDirection="right">
     {children}
-    {notices.map(notice => <Toast.Root key={notice.id} defaultOpen type="background" onOpenChange={open => { if (!open) setNotices(current => current.filter(n => n.id !== notice.id)); }} className="flex items-start gap-3 rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=open]:fade-in motion-reduce:animate-none">
-      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+    {notices.map(notice => <Toast.Root key={notice.id} defaultOpen type="background" onOpenChange={open => { if (!open) setNotices(current => current.filter(n => n.id !== notice.id)); }} className="flex items-start gap-2 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=open]:fade-in motion-reduce:animate-none sm:gap-3 sm:p-4">
+      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary sm:size-5" />
       <div className="min-w-0 flex-1 space-y-1">
-        <Toast.Title className="break-words text-sm font-medium">{notice.login} adicionou {notice.name} em {notice.category === 'creators' ? 'Criadores' : categories.find(c => c.id === notice.category)?.name ?? notice.category}</Toast.Title>
-        <Toast.Description className="text-xs text-muted-foreground">Sugestão enviada para revisão</Toast.Description>
-        <a href={notice.url} className="inline-block text-xs text-primary underline underline-offset-4">Acompanhar sugestão</a>
+        <Toast.Title className="break-words text-xs font-medium sm:text-sm">{notice.login} adicionou {notice.name} em {notice.category === 'creators' ? 'Criadores' : categories.find(c => c.id === notice.category)?.name ?? notice.category}</Toast.Title>
+        <Toast.Description className="text-[11px] text-muted-foreground sm:text-xs">Sugestão enviada para revisão</Toast.Description>
+        <a href={notice.url} className="inline-block text-[11px] text-primary underline underline-offset-4 sm:text-xs">Acompanhar sugestão</a>
       </div>
-      <Toast.Close aria-label="Fechar aviso" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><X className="size-4" /></Toast.Close>
+      <Toast.Close aria-label="Fechar aviso" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><X className="size-3.5 sm:size-4" /></Toast.Close>
     </Toast.Root>)}
-    <Toast.Viewport aria-label="Avisos de sugestões" className="fixed right-4 bottom-4 z-[100] m-0 flex w-[calc(100vw-2rem)] max-w-sm list-none flex-col gap-2 outline-none" />
+    <Toast.Viewport aria-label="Avisos de sugestões" className="fixed right-2 bottom-2 z-[100] m-0 flex w-[calc(100vw-1rem)] max-w-xs list-none flex-col gap-1 outline-none sm:right-4 sm:bottom-4 sm:w-[calc(100vw-2rem)] sm:max-w-sm sm:gap-2" />
   </Toast.Provider></NoticeContext.Provider>;
 }

@@ -60,11 +60,11 @@ export function Maintainers({ compact = false, embedded = false }: { compact?: b
   const { people, error, retry } = useContext(MaintainersContext);
   const shown = compact ? people?.slice(0, 8) : people;
 
-  return <section id={compact ? undefined : 'mantenedores'} aria-label="Mantenedores" className={compact ? 'flex max-w-full items-center justify-center gap-2' : 'space-y-5'}>
-    {compact ? <h2 className="sr-only">Mantenedores</h2> : !embedded && <header className="space-y-2"><h3 className="text-xl font-semibold tracking-tight">Mantenedores</h3><p className="text-sm text-muted-foreground">Pessoas que ajudam a construir o Guia e melhorar o catálogo.</p></header>}
-    {error ? <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"><p>Não foi possível carregar os mantenedores.</p><Button variant="link" size="inline" onClick={retry}>Tentar novamente</Button></div>
-      : people === null ? <div role="status" aria-label="Carregando mantenedores" className="flex flex-wrap gap-3">{Array.from({ length: compact ? 4 : 7 }, (_, index) => <Skeleton key={index} className={compact ? 'size-8 rounded-full' : 'size-11 rounded-full'} />)}</div>
-      : people.length === 0 ? <p className="text-sm text-muted-foreground">Os mantenedores serão apresentados aqui.</p>
+  return <section id={compact ? undefined : 'contribuidores'} aria-label="Contribuidores" className={compact ? 'flex max-w-full items-center justify-center gap-2' : 'space-y-5'}>
+    {compact ? <h2 className="sr-only">Contribuidores</h2> : !embedded && <header className="space-y-2"><h3 className="text-xl font-semibold tracking-tight">Contribuidores</h3><p className="text-sm text-muted-foreground">Pessoas que contribuem com os repositórios públicos do Guia.</p></header>}
+    {error ? <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"><p>Não foi possível carregar os contribuidores.</p><Button variant="link" size="inline" onClick={retry}>Tentar novamente</Button></div>
+      : people === null ? <div role="status" aria-label="Carregando contribuidores" className="flex flex-wrap gap-3">{Array.from({ length: compact ? 4 : 7 }, (_, index) => <Skeleton key={index} className={compact ? 'size-8 rounded-full' : 'size-11 rounded-full'} />)}</div>
+      : people.length === 0 ? <p className="text-sm text-muted-foreground">Os contribuidores serão apresentados aqui.</p>
       : <Tooltip.Provider delayDuration={250}><ul className={`flex flex-wrap items-center gap-3 ${compact ? 'justify-center' : 'justify-start'}`}>
         {shown?.map(person => <li key={person.url}><Tooltip.Root><Tooltip.Trigger asChild>
           <a href={person.url} target="_blank" rel="noopener noreferrer" aria-label={`Perfil de ${person.name} no GitHub`} className={`block shrink-0 overflow-hidden rounded-full border border-border/70 bg-muted ring-2 ring-background outline-offset-4 transition-transform duration-200 hover:scale-105 focus-visible:outline-2 focus-visible:outline-ring motion-reduce:transform-none ${compact ? 'size-8' : 'size-11'}`}>

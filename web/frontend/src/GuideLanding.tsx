@@ -43,11 +43,11 @@ export function GuideLanding({ dark }: { dark: boolean }) {
     <CommunityMetrics />
 
     <section className="space-y-12">
-      <section aria-labelledby="mantenedores-heading" className="space-y-5">
+      <section aria-labelledby="contribuidores-heading" className="space-y-5">
         <header className="max-w-2xl space-y-2">
           <p className="text-xs font-medium uppercase tracking-widest text-primary">A comunidade</p>
-          <h2 id="mantenedores-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">Mantenedores</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">Pessoas que ajudam a construir o Guia e cuidar do catálogo.</p>
+          <h2 id="contribuidores-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">Contribuidores</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">Pessoas que contribuem com os repositórios do Guia.</p>
         </header>
         <Maintainers embedded />
       </section>
