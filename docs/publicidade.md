@@ -42,7 +42,7 @@ O servidor emite uma autorização temporária para cada anúncio selecionado. R
 
 As campanhas, configurações e contadores ficam em `web/backend/GuiaDaTi.Api/App_Data/advertising.json`. As imagens enviadas ficam em `App_Data/contribution-images`. Esses dados ficam no servidor e sobrevivem a reinicializações. O catálogo público continua no GitHub.
 
-Configure `ADS_STORAGE_PATH` para usar outro caminho persistente. Preserve o arquivo de anúncios, a pasta de imagens e as chaves de autenticação nas atualizações. A estrutura atende uma instância do servidor. Ela não sincroniza arquivos entre máquinas.
+Em produção, configure `ADS_STORAGE_PATH` para apontar para um arquivo persistente e `CONTRIBUTION_IMAGES_PATH` para uma pasta persistente. Preserve esses dados e as chaves de autenticação nas atualizações. A estrutura atende uma instância do servidor. Ela não sincroniza arquivos entre máquinas.
 
 O servidor grava primeiro um arquivo temporário e depois substitui o anterior. Ele serializa alterações concorrentes para impedir reservas acima do limite. Se o arquivo existente estiver inválido, informa a falha e preserva o conteúdo para recuperação.
 

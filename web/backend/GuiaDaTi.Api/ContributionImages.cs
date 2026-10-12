@@ -1,10 +1,11 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Antiforgery;
 
-public sealed class ContributionImages(IWebHostEnvironment environment)
+public sealed class ContributionImages(IWebHostEnvironment environment, IConfiguration config)
 {
     public const int MaximumBytes = 2 * 1024 * 1024;
-    private readonly string directory = Path.Combine(environment.ContentRootPath, "App_Data", "contribution-images");
+    private readonly string directory = Path.GetFullPath(config["CONTRIBUTION_IMAGES_PATH"]
+        ?? Path.Combine(environment.ContentRootPath, "App_Data", "contribution-images"));
     public static string Extension(byte[] bytes)
     {
         if (bytes.Length >= 24 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}) && bytes.AsSpan(12,4).SequenceEqual("IHDR"u8)) return "png";
