@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 var catalogPath = Path.GetFullPath(builder.Configuration["CATALOG_PATH"]
@@ -26,7 +28,17 @@ builder.Services.AddSingleton<CommunityActivity>();
 builder.Services.AddSingleton<StudyEngagement>();
 builder.Services.AddSingleton<Advertising>();
 builder.AddCommunityAuth();
+var forwardedProxyIp = builder.Configuration["FORWARDED_PROXY_IP"];
+builder.Services.Configure<ForwardedHeadersOptions>(options => {
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    if (!string.IsNullOrWhiteSpace(forwardedProxyIp)) {
+        if (!IPAddress.TryParse(forwardedProxyIp, out var proxyIp))
+            throw new InvalidOperationException("FORWARDED_PROXY_IP inválido.");
+        options.KnownProxies.Add(proxyIp);
+    }
+});
 var app = builder.Build();
+app.UseForwardedHeaders();
 app.Use(async (context, next) => {
     if (context.Request.Path.Value?.TrimEnd('/') == "/contribuir") {
         context.Response.Redirect("/?sugerir=" + Uri.EscapeDataString(context.Request.Query["categoria"].ToString()));
