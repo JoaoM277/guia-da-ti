@@ -53,7 +53,7 @@ O workflow não faz deploy na VPS. Para executar o artefato, configure `CATALOG_
 ## Configuração
 
 - `CATALOG_PATH`: snapshot validado, padrão local `tools/catalog/dist/catalog.json`.
-- `SITE_URL`: origem canônica no build, padrão `https://guiadati.com`.
+- `SITE_URL`: origem canônica no build, padrão `https://guia.fulldev.com.br`.
 - `VITE_DATA_REPOSITORY`: padrão `https://github.com/guia-da-ti/guia-da-ti-dados`.
 - `DISCUSSIONS_REPOSITORY`: repositório público das conversas, padrão `guia-da-ti/guia-da-ti-dados` (somente no backend).
 - `DISCUSSIONS_TOKEN`: credencial de leitura da API GraphQL do GitHub (somente no backend).
