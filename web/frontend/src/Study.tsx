@@ -449,7 +449,18 @@ export function StudyDetail({ resource }: { resource: Resource }) {
           </div>
           <StudyBadges activity={a} />
         </div>
-        {(loading || error) && <div className="border-b px-4 py-2 sm:px-5">{loading && <p role="status" className="text-xs text-muted-foreground">Carregando atividade…</p>}{error && <p role="alert" className="text-xs text-destructive">{error}</p>}</div>}
+        {(loading || error) && <div className="border-b px-4 py-2 sm:px-5">{loading && <p role="status" className="text-xs text-muted-foreground">Carregando atividade…</p>}
+         {error && ( 
+          <div role="alert" className="flex-items center gap-2 text-xs"> 
+            <p  className="text-xs text-destructive">{error} <Button 
+                                                              type="button" 
+                                                              size="xs" 
+                                                              variant="outline" 
+                                                              className="bg-transparente b-0 p-0 font-inherit inline underline cursor pointer border-none"
+                                                              onClick={refresh}>tentar novamente</Button>
+            </p> 
+          </div>)} 
+          </div>}
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
           {resource.demo ? (
             <p className="text-sm text-muted-foreground">Este item é fictício e não recebe avaliações ou comentários.</p>
