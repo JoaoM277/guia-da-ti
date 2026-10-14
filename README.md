@@ -48,7 +48,7 @@ O workflow raiz valida pushes e PRs com o commit fixado. A cada hora, ou quando 
 
 Nenhum script do submódulo é executado pelo build do site. `tools/catalog` contém o contrato aceito pela aplicação. Mudanças de schema ou taxonomia devem ser coordenadas nos dois repositórios.
 
-O workflow não faz deploy na VPS. Para executar o artefato, configure `CATALOG_PATH` com o caminho absoluto do `catalog.json` incluído e rode o servidor no diretório publicado. A publicação no domínio depende da futura etapa de deploy.
+O workflow testa e gera uma imagem Docker antes de publicar na VPS por SSH. O primeiro deploy é manual. Após validar o site, `VPS_DEPLOY_ENABLED=true` libera as atualizações automáticas na `main`. Consulte [Publicar na VPS](docs/deploy-vps.md) para preparar o servidor, cadastrar os acessos e conectar o domínio.
 
 ## Configuração
 

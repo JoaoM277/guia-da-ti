@@ -4,6 +4,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Publicar manualmente na VPS
+        type: boolean
+        default: false
   schedule:
     - cron: '17 * * * *'
 permissions:
@@ -11,6 +16,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://guiadati.com' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +44,9 @@ jobs:
         working-directory: web/frontend
       - run: npm run build
         working-directory: web/frontend
+      - name: Testar regras do frontend
+        run: node --test scripts/*.test.mjs
+        working-directory: web/frontend
       - name: Verificar integração Discussions
         run: dotnet run --project web/backend/GuiaDaTi.Api.Tests
       - name: Preparar artefato
@@ -52,3 +62,107 @@ jobs:
           name: guia-da-ti
           path: artifact/
           retention-days: 7
+  package:
+    needs: build
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recusar publicação de uma versão antiga da main
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current" = "$GITHUB_SHA" || { echo 'A main mudou. Publique pela execução mais recente.'; exit 1; }
+      - uses: actions/download-artifact@v4
+        with:
+          name: guia-da-ti
+          path: artifact
+      - name: Preparar imagem e pacote da publicação
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          image="guia-da-ti:$release"
+          mkdir -p package
+          docker build --file deploy/Dockerfile --tag "$image" artifact
+          docker run --rm --network none --user root --entrypoint /bin/bash \
+            --volume "$GITHUB_WORKSPACE:/repo:ro" "$image" /repo/deploy/check-deploy.sh
+          trap 'docker rm -f guia-deploy-smoke >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name guia-deploy-smoke \
+            --tmpfs /app/App_Data:uid=1654,gid=1654 "$image" > /dev/null
+          docker exec guia-deploy-smoke curl --fail --silent --retry 20 \
+            --retry-all-errors --retry-delay 1 --max-time 5 http://127.0.0.1:8080/health
+          docker exec guia-deploy-smoke curl --fail --silent --output /dev/null http://127.0.0.1:8080/
+          docker save "$image" | gzip > package/image.tar.gz
+          cp deploy/compose.yml package/compose.yml
+          printf '%s\n' "$image" > package/image.txt
+          tar -czf release.tar.gz -C package .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guia-da-ti-release
+          path: release.tar.gz
+          retention-days: 7
+  deploy:
+    needs: [build, package]
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request' &&
+      ((github.event_name == 'workflow_dispatch' && inputs.deploy) ||
+       vars.VPS_DEPLOY_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: guia-da-ti-vps-production
+      cancel-in-progress: false
+    timeout-minutes: 20
+    env:
+      VPS_HOST: ${{ vars.VPS_HOST }}
+      VPS_PORT: ${{ vars.VPS_PORT || '22022' }}
+      VPS_USER: ${{ vars.VPS_USER }}
+      VPS_PATH: ${{ vars.VPS_PATH || '/opt/guia-da-ti' }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: guia-da-ti-release
+          path: .
+      - name: Recusar publicação de uma versão antiga da main
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current" = "$GITHUB_SHA" || { echo 'A main mudou. Publique pela execução mais recente.'; exit 1; }
+      - name: Enviar e ativar na VPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VPS_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          [[ "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          test "$VPS_USER" != root
+          [[ "$VPS_PORT" =~ ^[0-9]+$ ]] && (( VPS_PORT >= 1 && VPS_PORT <= 65535 ))
+          [[ "$VPS_PATH" =~ ^/opt/[a-zA-Z0-9_-]+$ ]]
+          test -n "$VPS_SSH_KEY" && test -n "$VPS_KNOWN_HOSTS"
+          install -d -m 700 "$RUNNER_TEMP/guia-ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$RUNNER_TEMP/guia-ssh/key"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$RUNNER_TEMP/guia-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/guia-ssh/key" "$RUNNER_TEMP/guia-ssh/known_hosts"
+          ssh_options=(-F /dev/null -i "$RUNNER_TEMP/guia-ssh/key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/guia-ssh/known_hosts" -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3)
+          target="$VPS_USER@$VPS_HOST"
+          release="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ssh "${ssh_options[@]}" -p "$VPS_PORT" "$target" "test -d '$VPS_PATH/incoming'"
+          scp "${ssh_options[@]}" -P "$VPS_PORT" release.tar.gz "$target:$VPS_PATH/incoming/$release.tar.gz"
+          ssh "${ssh_options[@]}" -p "$VPS_PORT" "$target" "bash -s -- '$VPS_PATH' '$release'" < deploy/deploy.sh
+      - name: Remover chave temporária
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/guia-ssh/key"

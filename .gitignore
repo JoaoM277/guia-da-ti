@@ -5,5 +5,12 @@ obj/
 wwwroot/
 .env
 .env.local
+.env.*
+!.env.example
+*.pem
+*.key
 *.user
 App_Data/
+deploy.env
+runtime.env
+deploy/.check-*/

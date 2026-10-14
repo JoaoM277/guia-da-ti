@@ -82,7 +82,7 @@ static class CatalogProposalChecks
         Check(saved.ToDraft().CreatorCategories!.SequenceEqual(saved.CreatorCategories!), "Preserve categories on approval round trip");
         var folder = Path.Combine(Path.GetTempPath(), "guia-images-" + Guid.NewGuid().ToString("N"));
         try {
-            var images = new ContributionImages(new ImageEnvironment {ContentRootPath=folder});
+            var images = new ContributionImages(new ImageEnvironment {ContentRootPath=folder}, settings);
             var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aAvsAAAAASUVORK5CYII=");
             var id = await images.Save(png, default);
             Check(File.ReadAllBytes(images.PathFor(id)).SequenceEqual(png), "Uploaded image persists on disk");

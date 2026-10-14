@@ -1,0 +1,29 @@
+services:
+  app:
+    image: ${GUIA_IMAGE:?Set GUIA_IMAGE to a release image}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - runtime.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      CATALOG_PATH: /app/catalog.json
+    ports:
+      - "127.0.0.1:${APP_PORT:-5082}:8080"
+    volumes:
+      - ./data:/app/App_Data:Z
+    cpus: ${APP_CPUS:-2.0}
+    mem_limit: ${APP_MEMORY:-2g}
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 6s
+      start_period: 20s
+      retries: 6
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
