@@ -15,7 +15,8 @@ PRs só executam as verificações. Eles não recebem as credenciais da VPS nem 
 - Execuções de outras branches não publicam. Uma execução é recusada se a `main` já tiver mudado antes de preparar a imagem.
 
 A publicação substitui um container. Pode haver uma breve interrupção. Se a nova versão não ficar saudável, o script tenta restaurar a anterior.
-O rollback cobre falhas detectadas pelo healthcheck do container. Falhas no proxy, certificado ou GitHub exigem diagnóstico separado.
+O rollback cobre falhas no healthcheck do container e na consulta HTTPS a `/health` pelo domínio público.
+Se a falha estiver no proxy ou no Cloudflare, retornar a aplicação à versão anterior pode não resolver o acesso.
 Na primeira publicação, ainda não existe uma versão anterior para restaurar.
 O retorno à versão anterior não restaura os arquivos de dados. Faça backup antes de uma mudança que altere seu formato.
 
@@ -148,9 +149,24 @@ Confira se o proxy encaminha o protocolo HTTPS e se o login retorna ao Guia.
 Cada push na `main` passa pelas verificações, gera uma imagem e publica na VPS quando a automação está ativada.
 As atualizações não exigem comandos manuais no servidor. Execuções manuais e agendadas usam o mesmo processo.
 
-O job usa `up --wait` e só registra a versão atual quando `/health` responde dentro do container.
-Essa verificação confirma que a aplicação iniciou. Ela não comprova DNS, HTTPS, login ou todas as integrações externas.
+O job usa `up --wait` e só registra a versão atual depois dos healthchecks interno e público.
+A consulta pública verifica DNS, HTTPS e acesso ao backend. Ela não comprova o login nem todas as integrações externas.
 O deploy mantém os arquivos de identificação da aplicação e do catálogo dentro da imagem.
+
+## Instalação em produção
+
+A primeira publicação foi validada em 14/10/2026 pelo [workflow manual](https://github.com/guia-da-ti/guia-da-ti/actions/runs/38587175950).
+O servidor usa AlmaLinux 9.8, Docker 29.9.0 e Compose 5.6.0. A inspeção encontrou as portas `80` e `443` livres e nenhum container existente.
+
+- A conta `guia-deploy` usa uma chave SSH dedicada. A identidade do servidor foi conferida pelo console da HostGator.
+- O projeto `guia-da-ti` executa a aplicação. O backend atende apenas em `127.0.0.1:5082`.
+- O projeto `guia-da-ti-proxy` executa Caddy nas portas TCP `80` e `443`, com certificado da Let's Encrypt e renovação automática.
+- Os dados ficam em `/opt/guia-da-ti/data`. Os certificados usam os volumes do proxy.
+- `runtime.env` e `deploy.env` têm permissão `600`. A aplicação confia no gateway `172.18.0.1` da sua rede Docker.
+
+Os testes confirmaram a página inicial, o catálogo e a leitura do fórum pelo domínio público.
+O login redireciona para o GitHub com callback em `https://guiadati.com/api/auth/callback`. A autorização de um visitante exige interação no GitHub.
+Nenhum registro DNS foi alterado. O modo SSL do Cloudflare foi preservado.
 
 ## Voltar manualmente a uma versão
 

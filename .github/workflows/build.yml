@@ -126,6 +126,7 @@ jobs:
       VPS_PORT: ${{ vars.VPS_PORT || '22022' }}
       VPS_USER: ${{ vars.VPS_USER }}
       VPS_PATH: ${{ vars.VPS_PATH || '/opt/guia-da-ti' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://guiadati.com' }}
       VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
       VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
     steps:
@@ -151,6 +152,7 @@ jobs:
           test "$VPS_USER" != root
           [[ "$VPS_PORT" =~ ^[0-9]+$ ]] && (( VPS_PORT >= 1 && VPS_PORT <= 65535 ))
           [[ "$VPS_PATH" =~ ^/opt/[a-zA-Z0-9_-]+$ ]]
+          [[ "$SITE_URL" =~ ^https://[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
           test -n "$VPS_SSH_KEY" && test -n "$VPS_KNOWN_HOSTS"
           install -d -m 700 "$RUNNER_TEMP/guia-ssh"
           printf '%s\n' "$VPS_SSH_KEY" > "$RUNNER_TEMP/guia-ssh/key"
@@ -161,7 +163,7 @@ jobs:
           release="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           ssh "${ssh_options[@]}" -p "$VPS_PORT" "$target" "test -d '$VPS_PATH/incoming'"
           scp "${ssh_options[@]}" -P "$VPS_PORT" release.tar.gz "$target:$VPS_PATH/incoming/$release.tar.gz"
-          ssh "${ssh_options[@]}" -p "$VPS_PORT" "$target" "bash -s -- '$VPS_PATH' '$release'" < deploy/deploy.sh
+          ssh "${ssh_options[@]}" -p "$VPS_PORT" "$target" "bash -s -- '$VPS_PATH' '$release' '$SITE_URL'" < deploy/deploy.sh
       - name: Remover chave temporária
         if: always()
         shell: bash

@@ -17,6 +17,13 @@ printf '%s %s\n' "$GUIA_IMAGE" "$*" >> "$DEPLOY_TEST_LOG"
 [[ "$*" != *' up '* || "$GUIA_IMAGE" != "${FAIL_IMAGE:-}" ]]
 MOCK
 chmod +x /tmp/guia-mocks/docker
+cat > /tmp/guia-mocks/curl <<'MOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s public-health\n' "$GUIA_IMAGE" >> "$DEPLOY_TEST_LOG"
+[[ "$GUIA_IMAGE" != "${FAIL_PUBLIC_IMAGE:-}" ]]
+MOCK
+chmod +x /tmp/guia-mocks/curl
 
 pack() {
   local release=$1 directory
@@ -29,6 +36,7 @@ pack() {
 first=0000000000000000000000000000000000000001-1-1
 second=0000000000000000000000000000000000000002-2-1
 third=0000000000000000000000000000000000000003-3-1
+fourth=0000000000000000000000000000000000000004-4-1
 
 pack "$first"
 export FAIL_IMAGE="guia-da-ti:$first"
@@ -50,6 +58,14 @@ if bash /repo/deploy/deploy.sh "$root" "$third"; then exit 1; fi
 test "$(cat "$root/current-release")" = "$second"
 test "$(cat "$root/data/preserve.txt")" = persistent-data
 tail -1 "$DEPLOY_TEST_LOG" | grep -q "guia-da-ti:$second"
+pack "$fourth"
+unset FAIL_IMAGE
+export FAIL_PUBLIC_IMAGE="guia-da-ti:$fourth"
+if bash /repo/deploy/deploy.sh "$root" "$fourth" https://guiadati.com; then exit 1; fi
+test "$(cat "$root/current-release")" = "$second"
+test "$(cat "$root/data/preserve.txt")" = persistent-data
+tail -1 "$DEPLOY_TEST_LOG" | grep -q "guia-da-ti:$second public-health"
 if bash /repo/deploy/deploy.sh /opt/../invalid "$third"; then exit 1; fi
 if bash /repo/deploy/deploy.sh "$root" '../invalid'; then exit 1; fi
-echo 'Deployment checks passed: first failure, success, rollback, persistent data and input validation.'
+if bash /repo/deploy/deploy.sh "$root" "$third" 'https://guiadati.com;echo invalid'; then exit 1; fi
+echo 'Deployment checks passed: first failure, success, container/public health rollback, persistent data and input validation.'

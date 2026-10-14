@@ -4,8 +4,10 @@ umask 077
 
 root=${1:?Deployment root required}
 release=${2:?Release id required}
+public_url=${3:-}
 [[ "$root" =~ ^/opt/[a-zA-Z0-9_-]+$ ]] || exit 2
 [[ "$release" =~ ^[0-9a-f]{40}-[0-9]+-[0-9]+$ ]] || exit 2
+[[ -z "$public_url" || "$public_url" =~ ^https://[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]] || exit 2
 test -d "$root" && test ! -L "$root"
 test -f "$root/runtime.env" && test -f "$root/deploy.env"
 test -d "$root/data" && test -d "$root/incoming"
@@ -34,7 +36,12 @@ activate() {
   export GUIA_IMAGE="guia-da-ti:$selected"
   docker compose --project-name guia-da-ti --project-directory "$root" \
     --env-file "$root/deploy.env" -f "$root/releases/$selected/compose.yml" \
-    up --detach --wait --wait-timeout 150
+    up --detach --wait --wait-timeout 150 || return 1
+  if test -n "$public_url"; then
+    curl -4 --fail --silent --show-error --output /dev/null \
+      --connect-timeout 5 --max-time 15 --retry 3 --retry-all-errors --retry-delay 2 \
+      "$public_url/health" || return 1
+  fi
 }
 
 if ! activate "$release"; then
