@@ -219,6 +219,7 @@ header a[aria-current], footer a[aria-current] { background: var(--accent); colo
 
 /* The root keeps the scrollbar gap even while Radix locks body scrolling. */
 @supports (scrollbar-gutter: stable) {
+  html:has(body[data-scroll-locked]) { overflow-y: scroll; }
   html body[data-scroll-locked] { margin-right: 0 !important; }
 }
 
