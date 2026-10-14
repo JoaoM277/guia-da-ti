@@ -53,7 +53,7 @@ O workflow testa e gera uma imagem Docker antes de publicar na VPS por SSH. O pr
 ## Configuração
 
 - `CATALOG_PATH`: snapshot validado, padrão local `tools/catalog/dist/catalog.json`.
-- `SITE_URL`: origem canônica no build, padrão `https://guia.fulldev.com.br`.
+- `SITE_URL`: origem canônica no build, padrão `https://guiadati.com`.
 - `VITE_DATA_REPOSITORY`: padrão `https://github.com/guia-da-ti/guia-da-ti-dados`.
 - `DISCUSSIONS_REPOSITORY`: repositório público das conversas, padrão `guia-da-ti/guia-da-ti-dados` (somente no backend).
 - `DISCUSSIONS_TOKEN`: credencial de leitura da API GraphQL do GitHub (somente no backend).
@@ -84,7 +84,7 @@ A pesquisa acontece ao digitar, após uma pausa de 400 ms, e também ao pression
 
 ### Publicar pelo Guia
 
-Cadastre uma OAuth App no GitHub. Configure `GITHUB_CLIENT_ID` e `GITHUB_CLIENT_SECRET` somente no backend, em User Secrets para desenvolvimento ou no gerenciador de segredos da hospedagem. O callback é `/api/auth/callback`, no mesmo endereço usado para abrir o site. Por exemplo, `http://localhost:5081/api/auth/callback` no desenvolvimento com Vite. Configure a URL pública HTTPS correspondente em produção. Defina `FORWARDED_PROXY_IP` com o IP do proxy reverso para o backend reconhecer o protocolo HTTPS. O fluxo usa OAuth com PKCE e o escopo `public_repo` exigido pela API para publicar em nome do visitante em repositórios públicos.
+Cadastre uma OAuth App no GitHub. Configure `GITHUB_CLIENT_ID` e `GITHUB_CLIENT_SECRET` somente no backend, em User Secrets para desenvolvimento ou no gerenciador de segredos da hospedagem. O callback é `/api/auth/callback`, no mesmo endereço usado para abrir o site. Por exemplo, `http://localhost:5081/api/auth/callback` no desenvolvimento com Vite. Em produção, cadastre `https://guiadati.com` em **Homepage URL** e `https://guiadati.com/api/auth/callback` em **Authorization callback URL** da OAuth App. Defina `FORWARDED_PROXY_IP` com o IP do proxy reverso para o backend reconhecer o protocolo HTTPS. O fluxo usa OAuth com PKCE e o escopo `public_repo` exigido pela API para publicar em nome do visitante em repositórios públicos.
 
 O login abre em uma janela menor e retorna para `/auth/complete.html`, que avisa a página original e fecha a janela. O Guia confirma a sessão pelo backend e atualiza o usuário sem recarregar a página. Se o navegador bloquear a janela, o login usa a navegação normal. A foto de perfil usa o ID autenticado do GitHub. No ambiente local, o Vite redireciona `127.0.0.1` para `localhost` para manter o endereço cadastrado no OAuth.
 

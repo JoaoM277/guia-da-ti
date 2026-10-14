@@ -133,7 +133,8 @@ docker inspect --format '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}'
 ```
 
 Depois de ajustar `runtime.env`, execute o workflow novamente.
-Cadastre o callback OAuth como `https://SEU_DOMINIO/api/auth/callback`. Use o mesmo domínio em `SITE_URL` e no navegador.
+Na OAuth App do GitHub, cadastre **Homepage URL** como `https://guiadati.com` e **Authorization callback URL** como `https://guiadati.com/api/auth/callback`.
+Use o mesmo domínio em `SITE_URL` e no navegador. Preserve o Client ID e o Client Secret ao atualizar esses endereços.
 Confira se o proxy encaminha o protocolo HTTPS e se o login retorna ao Guia.
 
 ## Ativar e conferir
