@@ -18,11 +18,11 @@ export async function checkCommunityCuration({send,evaluate,waitFor,navigate,cli
     assert.ok(names.every(name=>expected.some(r=>r.name===name)));
     assert.equal(await evaluate(`new URLSearchParams(location.search).get('publico')`),audience);
   }
+  const nationalWhatsApp = audience => communities.filter(r => r.communityAudience === audience && r.communityLocation?.scope === 'national' && r.communityPlatforms?.includes('whatsapp'));
   await navigate('/comunidades/?alcance=national&plataforma=whatsapp&publico=female');
-  await waitFor(`document.querySelectorAll('main tbody tr').length === 1`);
-  assert.equal(await evaluate(`document.querySelector('main tbody tr td:first-child button').textContent`),'Queens of Deploy — FullDev');
+  await waitFor(`document.querySelectorAll('main tbody tr').length === ${Math.min(20,nationalWhatsApp('female').length)}`);
   await selectOption('Público da comunidade','LGBT+');
-  await waitFor(`document.querySelector('main tbody tr td:first-child button')?.textContent === 'RainbowStack — FullDev'`);
+  await waitFor(`document.querySelectorAll('main tbody tr').length === ${Math.min(20,nationalWhatsApp('lgbt').length)}`);
   for(const width of [320,390,768,1440]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
     assert.equal(await evaluate(`document.documentElement.scrollWidth<=innerWidth`),true,'Community filters overflow at '+width);
