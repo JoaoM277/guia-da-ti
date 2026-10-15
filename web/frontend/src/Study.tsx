@@ -61,7 +61,7 @@ function useStudyActivity() {
       .catch(() => {
         if (!controller.signal.aborted) {
           setActivity({});
-          setError("A atividade dos itens não carregou. ");
+          setError("A atividade dos itens não carregou.");
         }
       })
       .finally(() => {
@@ -455,9 +455,9 @@ export function StudyDetail({ resource }: { resource: Resource }) {
             <p  className="text-xs text-destructive">{error} <Button 
                                                               type="button" 
                                                               size="xs" 
-                                                              variant="outline" 
-                                                              className="bg-transparente b-0 p-0 font-inherit inline underline cursor-pointer border-none hover:bg-transparente dark:hover:bg-transparente shadow-none hover:shadow-none"
-                                                              onClick={refresh}>tentar novamente</Button>
+                                                              variant="link" 
+                                                              className="p-0  underline cursor-pointer"
+                                                              onClick={refresh}>Tentar novamente.</Button>
             </p> 
           </div>)} 
           </div>}
